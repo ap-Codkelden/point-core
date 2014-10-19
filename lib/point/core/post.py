@@ -634,6 +634,7 @@ class Comment(object):
             self.text = self.text.decode('utf-8', 'ignore')
 
         if self.archive and self.id:
+            comment_id = self.id
             res = db.fetchone("INSERT INTO posts.comments "
                               "(post_id, comment_id, author, created,"
                               "to_comment_id, anon_login, text, files) "
@@ -666,10 +667,10 @@ class Comment(object):
 
         es = elasticsearch.Elasticsearch()
         es.index(index='point-comments',
-                 id='%s-%s' % (self.post.id, comment_id),
+                 id='%s-%s' % (self.post.id, self.id),
                  doc_type='post', body={
             'post_id': self.post.id,
-            'comment_id': comment_id,
+            'comment_id': self.id,
             'post_type': self.post.type,
             'created': self.created,
             'private': self.post.private,
