@@ -1,0 +1,15 @@
+gevent==0.13.8
+redis
+jinja2
+PyRSS2Gen
+hg+http://bitbucket.org/arts/geweb
+git+git://github.com/lawnsea/SleekXMPP-gevent.git
+python-dateutil
+Markdown
+feedparser
+unidecode
+html2text
+recaptcha-client
+bitbucket-api
+elasticsearch
+filemagic
