@@ -1,5 +1,12 @@
 from point.util.queue import Queue
 #from geweb import log
+from point.util.env import env
+from hashlib import md5
+
+try:
+    import re2 as re
+except ImportError:
+    import re
 
 import settings
 
@@ -31,4 +38,14 @@ def remove_attach(filename):
 def make_thumbnail(url):
     queue = Queue('imgq', settings.imgproc_socket)
     queue.push({'fn': 'thumbnail', 'url': url})
+
+def imgproc_url(url):
+    if isinstance(url, unicode):
+        url = url.encode('utf-8')
+    try:
+        protocol = env.request.protocol
+    except (AttributeError, KeyError):
+        protocol = 'http'
+    h = md5(re.sub('"', '%22', url)).hexdigest()
+    return '%s%s/%s/%s' % (protocol, settings.thumbnail_root, h[:2], h)
 
