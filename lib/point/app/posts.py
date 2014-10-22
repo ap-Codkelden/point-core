@@ -11,9 +11,9 @@ from point.core.post import BookmarkExists
 from point.util.redispool import publish
 from point.util import uniqify, b26, unb26, diff_ratio, timestamp
 from point.util import cache_get, cache_store, cache_del
+from point.util.imgproc import make_thumbnail
 from datetime import datetime, timedelta
 from psycopg2 import IntegrityError
-import pytz
 
 import settings
 
@@ -44,6 +44,23 @@ def check_last_action(fn):
         cache_store('last_action:%s' % author.id, d)
         return fn(*args, **kwargs)
     return _fn
+
+def _thumbnails(text):
+    urls = re.finditer(ur'(?P<url>(?P<proto>\w+)://(?:[\w\.\-%\:]*\@)?(?P<host>[\w\.\-%]+)(?::(?P<port>\d+))?(?P<path>(?:/[^\s\?\u0002\u0003]*)*)(?P<qs>\?[^#\s\u0002\u0003]*)?(?:#(?P<hash>\S+))?)',
+                      text)
+
+    for m in urls:
+        url = m.group('url')
+
+        imgm = re.search(r'\.(?P<ext>jpe?g|png|gif)(:large)?$', m.group('path'), re.I)
+        if (imgm \
+            or re.search("^http://ompldr.org/v[A-Z][a-zA-Z0-9]+$", url, re.I) \
+            or url.startswith("http://img.leprosorium.com") \
+            or url.startswith("http://pics.livejournal.com/")) \
+            and not re.search(r'https?://(www\.)?dropbox.com', url, re.I):
+
+            print '_thumbnails', url
+            make_thumbnail(url)
 
 #@check_auth
 def show_post(post_id):
@@ -225,6 +242,9 @@ def add_post(post, title=None, link=None, tags=None, author=None, to=None,
 
     cache_store('last:%s' % post.author.id, {'post':post_id},
                 expire=600)
+
+    _thumbnails(post.text)
+
     return post_id
 
 @check_auth
@@ -313,6 +333,8 @@ def edit_post(post_id, text=None, tags=None, private=None, files=None):
                         'post_id':post.id, 'author':env.user.login,
                         'tags':tags, 'text':text, 'private': post.private,
                         'files':files})
+
+    _thumbnails(text)
 
 @check_auth
 def update_post(post_id, text):
@@ -903,6 +925,9 @@ def add_comment(post_id, to_comment_id, text, files=None,
         cache_store('last:%s' % env.user.id,
                     {'post':post.id, 'comment':comment_id},
                     expire=600)
+
+    _thumbnails(text)
+
     return comment_id
 
 @check_auth

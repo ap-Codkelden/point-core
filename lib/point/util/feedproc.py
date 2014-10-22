@@ -1,5 +1,6 @@
 from point.core.feed.exc import InvalidFeedType, FeedFetchError
-from point.util import xhtmlim, imgproc_url
+from point.util import xhtmlim
+from point.util.imgproc import imgproc_url
 from geweb import log
 import feedparser
 from pytz import timezone

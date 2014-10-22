@@ -2,16 +2,13 @@ import os
 import time
 from geweb import log
 from point.util.redispool import RedisPool
-from point.util.env import env
 import json
 import struct
 from datetime import datetime
 import pytz
 from Levenshtein import distance, ratio
-from xml.sax.saxutils import escape, unescape
+from xml.sax.saxutils import escape
 from html2text import HTML2Text
-from hashlib import md5
-from urllib import quote_plus
 
 try:
     import re2 as re
@@ -103,17 +100,6 @@ def striphtml(s):
     #h2t.ignore_links = True
     h2t.ignore_images = True
     return h2t.handle(s)
-
-def imgproc_url(url):
-    if isinstance(url, unicode):
-        url = url.encode('utf-8')
-    try:
-        protocol = env.request.protocol
-    except (AttributeError, KeyError):
-        protocol = 'http'
-    h = md5(re.sub('"', '%22', url)).hexdigest()
-    return '%s%s/%s/%s?u=%s' % (protocol, settings.thumbnail_root,
-                                    h[:2], h, quote_plus(url))
 
 def parse_email(address):
     m = re.match(r'^(?P<user>\w|\w[\w.-]*\w)@(?P<domain>(?:(?:\w|\w[\w-]*\w)\.)+(?:\w|\w[\w-]*\w))$', address)
