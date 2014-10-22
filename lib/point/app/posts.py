@@ -140,7 +140,7 @@ def add_post(post, title=None, link=None, tags=None, author=None, to=None,
         post = Post(None, author=author, title=title, link=link, tags=tags,
                     private=private, text=text.strip(), type=type)
 
-    if len(post.text) < 3:
+    if len(post.text) < 3 and not files:
         raise PostTextError
 
     m = re.search(r'^\s*(?P<to>(?:@[a-z0-9_-]+[,\s]*)+)(?P<text>.*)', post.text)
@@ -889,11 +889,11 @@ def add_comment(post_id, to_comment_id, text, files=None,
     if len(text) > 4096:
         text = text[:4096]
 
-    if not text:
+    if not text and not files:
         raise PostTextError
 
     m = re.search(r'^\s*(?P<to>(?:@[a-z0-9_-]+[,\s]*)+)(?P<text>.*)', text)
-    if m and not m.group('text').strip():
+    if m and not m.group('text').strip() and not files:
         raise PostTextError
 
     post = show_post(post_id)
