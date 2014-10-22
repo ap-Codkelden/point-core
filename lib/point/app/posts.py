@@ -61,6 +61,11 @@ def _thumbnails(text):
 
             print '_thumbnails', url
             make_thumbnail(url)
+            return
+
+        if re.search(r'https?://(www\.)?dropbox.com', url, re.I):
+            make_thumbnail('%s://dl.dropboxusercontent.com%s' % \
+                           (m.group('proto'), m.group('path')))
 
 #@check_auth
 def show_post(post_id):
