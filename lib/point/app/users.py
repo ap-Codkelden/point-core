@@ -11,6 +11,8 @@ from hashlib import sha256
 from datetime import datetime
 from random import randint
 
+from geweb.mail import mail
+
 import settings
 
 def register(login, **kwargs):
@@ -25,11 +27,34 @@ def register(login, **kwargs):
     except UserNotFound:
         pass
 
-    env.user = env.user.__class__.from_data(None, login, **kwargs)
-    env.user.save()
+    if not env.user:
+        env.user = env.user.__class__.from_data(None, login, **kwargs)
+    if not env.user.login:
+        env.user.login = login
+    env.user.save(active=False)
 
-    add_post('User @%s is registered' % login,
-             author=User('login', 'welcome'), auto_subscribe=False)
+    send_activation_code()
+
+def send_activation_code():
+    body = ("Welcome to Point.im, @%s!\n"
+            "To activate your account, please follow the URL:\n"
+            "https://%s/activate?code=%s") % \
+            (env.user.login, settings.domain,env.user.activation_code())
+    emails = env.user.get_accounts('email')
+    if emails:
+        for addr in emails:
+            mail(addr, subject="Point.im account activation", body=body)
+
+    jids = env.user.get_accounts('xmpp')
+    if jids:
+        pass
+        # TODO: send xmpp message
+
+@check_auth
+def activate():
+    if env.user.activate():
+        add_post('User @%s is registered' % env.user.login,
+                 author=User('login', 'welcome'), auto_subscribe=False)
 
 #@check_auth
 def info(user):

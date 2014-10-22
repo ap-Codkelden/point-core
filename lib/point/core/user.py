@@ -7,7 +7,8 @@ from point.util import cache_get, cache_store, cache_del
 from point.util import validate_nickname
 from point.core import PointError
 import json
-from hashlib import sha1
+from hashlib import sha1, sha256
+from random import randint
 from psycopg2 import IntegrityError, ProgrammingError, DataError
 from datetime import datetime
 import dateutil.parser
@@ -53,6 +54,9 @@ class UserLoginError(UserError):
     pass
 
 class RenameError(UserError):
+    pass
+
+class AccountExists(UserError):
     pass
 
 class User(object):
@@ -151,6 +155,8 @@ class User(object):
 
         #self.info = {}
 
+        self.redis = RedisPool(settings.storage_socket)
+
         return self
 
     @staticmethod
@@ -196,6 +202,13 @@ class User(object):
     def get_accounts(self, type):
         if type not in ACCOUNT_TYPES:
             raise ValueError(type)
+
+        if not self.id:
+            for t, addr in self.accounts:
+                if t == type:
+                    return [addr]
+            return
+
         res = db.fetchall("SELECT address FROM users.accounts "
                           "WHERE user_id=%s AND type=%s;",
                           [self.id, type])
@@ -209,7 +222,7 @@ class User(object):
                           [self.id, type])
         return [r['address'] for r in res]
 
-    def add_account(self, type, address):
+    def add_account(self, type, address, confirmed=False):
         if type in ACCOUNT_TYPES and not parse_email(address):
             raise ValueError(address)
 
@@ -217,17 +230,24 @@ class User(object):
                           "WHERE type=%s AND address=%s;",
                           [type, address])
         if res:
-            return
+            raise AccountExists
 
         res = db.fetchone("SELECT id FROM users.accounts_unconfirmed "
                           "WHERE type=%s AND address=%s;",
                           [type, address])
         if res:
-            return
+            raise AccountExists
 
-        code = '%s%s%s%s' % (settings.secret, datetime.now(), type, address)
-        code = sha1(code).hexdigest().lower()
-        self.accounts_add.append((type, address, code))
+        if not confirmed:
+            code = '%s%s%s%s' % (settings.secret, datetime.now(), type, address)
+            code = sha1(code).hexdigest().lower()
+            self.accounts_add.append((type, address, code))
+        else:
+            code = None
+            self.accounts_add.append((type, address))
+
+        if not self.id:
+            self.accounts = self.accounts_add
 
         cache_del("addr_id_login:%s" % address)
 
@@ -482,7 +502,7 @@ class User(object):
     def set_password(self, password):
         self.password = self._passhash(password)
 
-    def save(self):
+    def save(self, active=None):
         if not self.login:
             raise UserError("Cannot save anonymous user")
 
@@ -500,7 +520,8 @@ class User(object):
             db.perform("INSERT INTO users.profile (id, private, lang) "
                        "VALUES (%s, false, 'en');", [self.id])
 
-            self.accounts_add = self.accounts
+            if not self.accounts_add:
+                self.accounts_add = self.accounts
             is_new = True
 
         if not is_new:
@@ -580,6 +601,32 @@ class User(object):
         if self.password:
             db.perform("UPDATE users.logins SET password=%s WHERE id=%s;",
                        (self.password, self.id))
+
+        key = "activation:%s" % self.id
+
+        if active == True:
+            self.redis.delete(key)
+            self._activation_code = None
+        elif active == False:
+            self._activation_code = "%s%s%s" % (settings.secret, self.id,
+                                                randint(100000000, 999999999))
+            self.redis.set(key, self._activation_code)
+            self.redis.expire(key, 24 * 60 * 60)
+
+    def activation_code(self):
+        try:
+            return self._activation_code
+        except AttributeError:
+            self._activation_code = self.redis.get("activation:%s" % self.id)
+            return self._activation_code
+
+    def is_activated(self):
+        return not bool(self.activation_code())
+
+    def activate(self, code):
+        if code == self.activation_code():
+            self.redis.delete("activation:%s" % self.id)
+            self._activation_code = None
 
     def _set_private(self):
         res = [u['id'] for u in \
@@ -1038,6 +1085,23 @@ class User(object):
             "name": self.get_info("name"),
             "avatar": self.get_info("avatar")
         }
+
+    @staticmethod
+    def account_exists(type, addr, check_unconfirmed=True):
+        res = db.fetchone("SELECT user_id FROM users.accounts "
+                          "WHERE type=%s AND addr=%s;", [type, addr])
+        if res:
+            return True
+
+        if not check_unconfirmed:
+            return False
+
+        res = db.fetchone("SELECT user_id FROM users.accounts_unconfirmed "
+                          "WHERE type=%s AND addr=%s;", [type, addr])
+        if res:
+            return True
+
+        return False
 
 class AnonymousUser():
     id = -1
