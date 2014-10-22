@@ -679,6 +679,8 @@ class Comment(object):
             'text': self.text,
         })
 
+        self.id = comment_id
+
         return comment_id
 
     def delete(self):

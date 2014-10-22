@@ -3,14 +3,15 @@ import geweb.db.pgsql as db
 from point.util.env import env
 from point.core.user import User, AlreadySubscribed, SubscribeError, check_auth
 from point.core.post import Post, PostAuthorError, PostTextError, \
-                            PostUpdateError, PostDiffError, PostCommentedError
-from point.core.post import Comment, CommentAuthorError
+                            PostUpdateError, PostDiffError, PostCommentedError,\
+                            PostNotFound
+from point.core.post import Comment, CommentAuthorError, CommentNotFound
 from point.core.post import RecommendationError, RecommendationNotFound, \
                             RecommendationExists, PostLimitError
 from point.core.post import BookmarkExists
 from point.util.redispool import publish
 from point.util import uniqify, b26, unb26, diff_ratio, timestamp
-from point.util import cache_get, cache_store, cache_del
+from point.util import cache_get, cache_store
 from point.util.imgproc import make_thumbnail
 from datetime import datetime, timedelta
 from psycopg2 import IntegrityError
@@ -45,6 +46,24 @@ def check_last_action(fn):
         return fn(*args, **kwargs)
     return _fn
 
+def _store_last(inst):
+    if isinstance(inst, Post):
+        item = inst.id
+    elif isinstance(inst, Comment):
+        item = '%s/%s' % (inst.post.id, inst.id)
+
+    key = 'last:%s' % inst.author.id
+
+    items = cache_get(key)
+    if not items:
+        items = []
+    elif not isinstance(items, (list, tuple)):
+        items = [items]
+
+    items.append(item)
+
+    cache_store(key, items[:10])
+
 def _thumbnails(text):
     urls = re.finditer(ur'(?P<url>(?P<proto>\w+)://(?:[\w\.\-%\:]*\@)?(?P<host>[\w\.\-%]+)(?::(?P<port>\d+))?(?P<path>(?:/[^\s\?\u0002\u0003]*)*)(?P<qs>\?[^#\s\u0002\u0003]*)?(?:#(?P<hash>\S+))?)',
                       text)
@@ -59,7 +78,6 @@ def _thumbnails(text):
             or url.startswith("http://pics.livejournal.com/")) \
             and not re.search(r'https?://(www\.)?dropbox.com', url, re.I):
 
-            print '_thumbnails', url
             make_thumbnail(url)
             return
 
@@ -245,8 +263,7 @@ def add_post(post, title=None, link=None, tags=None, author=None, to=None,
         except AlreadySubscribed:
             pass
 
-    cache_store('last:%s' % post.author.id, {'post':post_id},
-                expire=600)
+    _store_last(post)
 
     _thumbnails(post.text)
 
@@ -926,10 +943,12 @@ def add_comment(post_id, to_comment_id, text, files=None,
         except AlreadySubscribed:
             pass
 
-    if force:
-        cache_store('last:%s' % env.user.id,
-                    {'post':post.id, 'comment':comment_id},
-                    expire=600)
+    #if force:
+    #    cache_store('last:%s' % env.user.id,
+    #                {'post':post.id, 'comment':comment_id},
+    #                expire=600)
+
+    _store_last(comment)
 
     _thumbnails(text)
 
@@ -962,21 +981,37 @@ def delete_comment(post_id, comment_id):
 
 @check_auth
 def delete_last():
-    last = cache_get('last:%s' % env.user.id)
+    key = 'last:%s' % env.user.id
+    items = cache_get(key)
 
-    if not last:
+    if not items:
         return None
 
-    cache_del('last:%s' % env.user.id)
+    while True:
+        try:
+            item = items.pop()
+            if not item:
+                return
+            try:
+                post_id, comment_id = item.split('/')
+                post = Post(post_id)
+                comment = Comment(post_id, int(comment_id))
+                break
+            except ValueError:
+                post = Post(item)
+                comment = None
+                break
+        except (PostNotFound, CommentNotFound):
+            continue
+        except IndexError:
+            return
+        finally:
+            pass
 
-    post = Post(last['post'])
-    if 'comment' in last:
-        comment = Comment(post, last['comment'])
-    else:
-        comment = None
+    cache_store(key, items)
 
     if comment:
-        if env.user != post.author and env.user != comment.author:
+        if env.user.id != post.author.id and env.user.id != comment.author.id:
             raise CommentAuthorError(post.id, comment.id)
         comment.delete()
         return comment
