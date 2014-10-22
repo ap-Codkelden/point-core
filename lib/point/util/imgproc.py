@@ -2,6 +2,7 @@ from point.util.queue import Queue
 #from geweb import log
 from point.util.env import env
 from hashlib import md5
+from urllib import quote_plus
 
 try:
     import re2 as re
@@ -47,5 +48,6 @@ def imgproc_url(url):
     except (AttributeError, KeyError):
         protocol = 'http'
     h = md5(re.sub('"', '%22', url)).hexdigest()
-    return '%s%s/%s/%s' % (protocol, settings.thumbnail_root, h[:2], h)
+    return '%s%s/%s/%s?u=%s' % (protocol, settings.thumbnail_root, h[:2], h,
+                                quote_plus(url))
 
