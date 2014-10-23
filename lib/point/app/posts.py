@@ -46,6 +46,14 @@ def check_last_action(fn):
         return fn(*args, **kwargs)
     return _fn
 
+def _get_last():
+    key = 'last:%s' % env.user.id
+    try:
+        post_id = filter(lambda s: '/' not in s, cache_get(key))[-1]
+    except (IndexError, TypeError):
+        return None
+    return post_id
+
 def _store_last(inst):
     if isinstance(inst, Post):
         item = inst.id
