@@ -286,3 +286,16 @@ def basename(environ, path):
     return os.path.basename(path)
 jinja_env.filters['basename'] = basename
 
+@environmentfilter
+def login_filter(environ, login, xhtml=False):
+    login = login.strip()
+    if not login.startswith('@'):
+        login = '@%s' % login
+
+    if xhtml:
+        login = '<a href="xmpp:%s?message;type=chat;body=%s%%20" style="color:#4488ff; font-weight:bold; text-decoration:none;">%s</a>' % \
+                (settings.xmpp_jid, login, login)
+
+    return login
+jinja_env.filters['login'] = login_filter
+

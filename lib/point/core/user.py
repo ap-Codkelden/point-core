@@ -767,10 +767,13 @@ class User(object):
         return True
 
     def del_from_whitelist(self, user):
-        db.perform("DELETE FROM users.whitelist WHERE "
-                   "user_id=%s AND to_user_id=%s;", [self.id, user.id])
+        res = db.fetchone("DELETE FROM users.whitelist WHERE "
+                          "user_id=%s AND to_user_id=%s RETURNING user_id;",
+                          [self.id, user.id])
         if self.get_profile('private'):
             self.del_subscriber(user)
+
+        return bool(res)
 
     def check_whitelist(self, user):
         if self.id == user.id or not self.id:
@@ -814,8 +817,10 @@ class User(object):
         return True
 
     def del_from_blacklist(self, user):
-        db.perform("DELETE FROM users.blacklist WHERE "
-                   "user_id=%s AND to_user_id=%s;", [self.id, user.id])
+        res = db.fetchone("DELETE FROM users.blacklist WHERE "
+                          "user_id=%s AND to_user_id=%s RETURNING user_id;",
+                          [self.id, user.id])
+        return bool(res)
 
     def check_blacklist(self, user):
         if self == user or not user or not self.id:

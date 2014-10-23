@@ -166,7 +166,7 @@ def del_from_whitelist(login):
     if env.user.id == user.id:
         return
 
-    env.user.del_from_whitelist(user)
+    return env.user.del_from_whitelist(user)
 
 @check_auth
 def add_to_blacklist(login):
@@ -193,7 +193,7 @@ def del_from_blacklist(login):
     if env.user.id == user.id:
         return
 
-    env.user.del_from_blacklist(user)
+    return env.user.del_from_blacklist(user)
 
 def request_password(user):
     if not user.id:
