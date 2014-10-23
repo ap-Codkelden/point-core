@@ -1,8 +1,15 @@
 from elasticsearch import Elasticsearch
 #import dateutil.parser
 
+try:
+    import re2 as re
+except ImportError:
+    import re
+
 def search_posts(text, user=None, private=None, bookmarks=False,
                  offset=0, limit=20):
+    text = re.sub(r'[\(\)\[\]\{\}!?\\/]+', ' ', text).strip()
+
     es = Elasticsearch()
 
     body = {
