@@ -113,8 +113,8 @@ class Post(object):
             self.editable = not self.edited and \
                             self.created + \
                             timedelta(seconds=settings.edit_expire) >= \
-                            datetime.now() and \
-                            self.comments_count() == 0
+                            datetime.now() # and \
+                            #self.comments_count() == 0
 
             if archive is not None:
                 self.archive = archive

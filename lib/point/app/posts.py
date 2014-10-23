@@ -296,8 +296,8 @@ def edit_post(post_id, text=None, tags=None, private=None, files=None):
 
     if post.edited:
         raise PostUpdateError
-    if post.comments_count() > 0:
-        raise PostCommentedError
+    #if post.comments_count() > 0:
+    #    raise PostCommentedError
 
     if datetime.now() - timedelta(seconds=settings.edit_expire) \
             > post.created:
