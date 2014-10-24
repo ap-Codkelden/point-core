@@ -469,8 +469,9 @@ class Post(object):
                                               unread=unr)
             comments.append(comment)
 
-        redis = RedisPool(settings.storage_socket)
-        redis.set('cmnt_cnt.%s' % unb26(self.id), len(comments))
+        if not limit and not offset:
+            redis = RedisPool(settings.storage_socket)
+            redis.set('cmnt_cnt.%s' % unb26(self.id), len(comments))
 
         return comments
 

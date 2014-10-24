@@ -1076,6 +1076,8 @@ def show_comment(post_id, comment_id):
     post = show_post(post_id)
     comment = Comment(post, comment_id)
 
+    clear_unread_comments(post_id, comment_id)
+
     return comment
 
 @check_auth
@@ -1096,6 +1098,8 @@ def delete_comment(post_id, comment_id):
 @check_auth
 def clear_unread_posts(posts):
     if posts:
+        if not isinstance(posts, (list, tuple)):
+            posts = [posts]
         db.perform("DELETE FROM posts.unread_posts "
                    "WHERE user_id=%s AND post_id=ANY(%s);",
                    [env.user.id, posts])
@@ -1106,8 +1110,12 @@ def clear_unread_posts(posts):
 
 @check_auth
 def clear_unread_comments(post_id, comments=None):
-    post_id=unb26(post_id)
+    if not isinstance(post_id, (int, long)):
+        post_id=unb26(post_id)
+
     if comments:
+        if not isinstance(comments, (list, tuple)):
+            comments = [comments]
         db.perform("DELETE FROM posts.unread_comments "
                    "WHERE user_id=%s AND post_id=%s AND comment_id=ANY(%s);",
                    [env.user.id, post_id, comments])
