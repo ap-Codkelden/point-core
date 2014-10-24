@@ -1097,12 +1097,17 @@ def delete_comment(post_id, comment_id):
 
 @check_auth
 def clear_unread_posts(posts):
+    def _unb(id):
+        if not isinstance(id, (int, long)):
+            id = unb26(id)
+        return id
+
     if posts:
         if not isinstance(posts, (list, tuple)):
             posts = [posts]
         db.perform("DELETE FROM posts.unread_posts "
                    "WHERE user_id=%s AND post_id=ANY(%s);",
-                   [env.user.id, posts])
+                   [env.user.id, map(_unb, posts)])
     else:
         db.perform("DELETE FROM posts.unread_posts "
                    "WHERE user_id=%s;",
