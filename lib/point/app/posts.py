@@ -3,13 +3,12 @@ import geweb.db.pgsql as db
 from point.util.env import env
 from point.core.user import User, AlreadySubscribed, SubscribeError, check_auth
 from point.core.post import Post, PostAuthorError, PostTextError, \
-                            PostUpdateError, PostDiffError, PostCommentedError,\
-                            PostNotFound
+                            PostUpdateError, PostDiffError, PostNotFound
 from point.core.post import Comment, CommentAuthorError, CommentNotFound
 from point.core.post import RecommendationError, RecommendationNotFound, \
                             RecommendationExists, PostLimitError
 from point.core.post import BookmarkExists
-from point.util.redispool import publish
+from point.util.redispool import RedisPool, publish
 from point.util import uniqify, b26, unb26, diff_ratio, timestamp
 from point.util import cache_get, cache_store
 from point.util.imgproc import make_thumbnail
@@ -276,6 +275,9 @@ def add_post(post, title=None, link=None, tags=None, author=None, to=None,
                      [(unb26(post_id), 0, u) for u in subscribers])
         except IntegrityError:
             pass
+
+        if post.private:
+            add_private_unread([env.user.id] + subscribers, unb26(post_id))
 
     if auto_subscribe:
         try:
@@ -736,10 +738,87 @@ def recent_blog_posts(author=None, limit=10, offset=0, asc=False, before=None):
 
     return _plist(res)
 
+def add_private_unread(users, post_id):
+    if not isinstance(users, (list, tuple)):
+        users = [users]
+    redis = RedisPool(settings.storage_socket)
+    for u in users:
+        key = 'private_unread:%s' % u
+        ids = redis.get(key)
+        if ids:
+            ids = [post_id] + filter(lambda id: int(id)!=post_id, ids.split(','))
+        else:
+            ids = [post_id]
+
+        redis.set(key, ','.join(map(lambda id: str(id), ids[:100])))
+
+def del_private_unread(users, post_id):
+    if not isinstance(users, (list, tuple)):
+        users = [users]
+    redis = RedisPool(settings.storage_socket)
+    for u in users:
+        key = 'private_unread:%s' % u
+        ids = redis.get(key)
+        if ids:
+            ids = filter(lambda id: int(id)!=post_id, ids.split(','))
+            redis.set(key, ','.join(map(lambda id: str(id), ids[:100])))
+
+@check_auth
+def private_unread(limit=10, offset=0, asc=False, before=None):
+    """
+    Get recently updated private posts
+    """
+    if before and isinstance(before, (int, long)):
+        offset = before - 157321
+
+    redis = RedisPool(settings.storage_socket)
+    ids = redis.get('private_unread:%s' % env.user.id)
+    if not ids:
+        return []
+
+    ids = map(lambda id: int(id), ids.split(','))[offset:offset+limit]
+
+    res = db.fetchall(
+        "SELECT "
+        "p.id, p.author, u.login, i.name, i.avatar, p.private, "
+        "p.created at time zone %(tz)s AS created,"
+        "p.resource, "
+        "p.type, p.title, p.link, p.tags, p.text, "
+        "p.edited,"
+        "(p.edited=false AND p.created+interval '%(edit_expire)s second' >= now())"
+            "AS editable, "
+        "p.archive, p.files, "
+        "sp.post_id AS subscribed, "
+        "rp.post_id AS recommended, "
+        "rb.post_id AS bookmarked "
+        "FROM unnest(%(ids)s) "
+        "JOIN posts.posts p ON p.id=unnest "
+        "JOIN users.logins u ON u.id=p.author "
+        "LEFT OUTER JOIN users.info i ON i.id=p.author "
+        "LEFT OUTER JOIN posts.recipients rcp ON rcp.post_id=p.id "
+        "LEFT OUTER JOIN subs.posts sp ON sp.post_id=p.id "
+                    "AND sp.user_id=%(user_id)s "
+        "LEFT OUTER JOIN posts.recommendations rp "
+                    "ON %(user_id)s=rp.user_id AND "
+                    "p.id=rp.post_id  AND rp.comment_id=0 "
+        "LEFT OUTER JOIN posts.bookmarks rb "
+            "ON p.id=rb.post_id AND %(user_id)s=rb.user_id AND "
+            "rb.comment_id=0 "
+        "WHERE p.private=true;",
+        {'ids': ids, 'user_id': env.user.id, 'tz': env.user.get_profile('tz'),
+         'limit': limit, 'edit_expire': settings.edit_expire})
+
+    plist = []
+    for i, r in enumerate(res):
+        r = dict(r)
+        r['uid'] = 157321 + offset + i + 1
+        plist.append(r)
+    return _plist(plist)
+
 @check_auth
 def private_outgoing(limit=10, offset=None, asc=False, before=None):
     """
-    Get private posts
+    Get outgoing private posts
     """
     order = 'ASC' if asc else 'DESC'
 
@@ -795,7 +874,7 @@ def private_outgoing(limit=10, offset=None, asc=False, before=None):
 @check_auth
 def private_incoming(limit=10, offset=None, asc=False, before=None):
     """
-    Get private posts
+    Get incoming private posts
     """
     order = 'ASC' if asc else 'DESC'
 
@@ -882,7 +961,7 @@ def recent_commented_posts(limit=10, offset=None, asc=False, before=None):
         "LEFT OUTER JOIN posts.bookmarks rb "
            "ON p.id=rb.post_id AND %%(user_id)s=rb.user_id AND "
            "rb.comment_id=0 "
-        "WHERE s.user_id=%%(user_id)s "
+        "WHERE s.user_id=%%(user_id)s AND p.private=false "
         "GROUP BY p.id, u.login, i.name, i.avatar, rp.post_id, rb.post_id "
         "ORDER BY max(c.created) %s "
         "%s LIMIT %%(limit)s;"% (order, offset_cond),
@@ -966,9 +1045,11 @@ def add_comment(post_id, to_comment_id, text, files=None,
         db.batch("INSERT INTO posts.unread_comments "
                  "(user_id, post_id, comment_id, type) VALUES (%s, %s, %s, %s)",
                  [(u, unb26(post_id), comment_id, ptype) for u in subscribers])
-    #except IntegrityError:
-    finally:
+    except IntegrityError:
         pass
+
+    if post.private:
+        add_private_unread([env.user.id] + subscribers, unb26(post_id))
 
     if not dont_subscribe:
         try:
@@ -1011,6 +1092,17 @@ def delete_comment(post_id, comment_id):
     comment.delete()
 
     return post
+
+@check_auth
+def clear_unread_posts(posts):
+    if posts:
+        db.perform("DELETE FROM posts.unread_posts "
+                   "WHERE user_id=%s AND post_id=ANY(%s);",
+                   [env.user.id, posts])
+    else:
+        db.perform("DELETE FROM posts.unread_posts "
+                   "WHERE user_id=%s;",
+                   [env.user.id])
 
 @check_auth
 def clear_unread_comments(post_id, comments=None):
@@ -1422,6 +1514,9 @@ def del_recipients(post_id, to):
                       [unb26(post_id), [u.id for u in to_users]])
 
 def _plist(res):
+    if not res:
+        return []
+
     unread = {}
 
     if env.user and env.user.id:
@@ -1432,6 +1527,8 @@ def _plist(res):
                              "GROUP BY post_id ",
                              [env.user.id, ids]):
             unread[r['post_id']] = r['cnt']
+
+        clear_unread_posts(ids)
 
     plist  = []
     for r in res:

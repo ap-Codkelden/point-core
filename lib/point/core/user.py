@@ -866,7 +866,9 @@ class User(object):
                               "FROM posts.unread_posts "
                               "WHERE user_id=%s GROUP BY type;",
                               [self.id])
+            print '-------', res
             self._unread_posts = { c['type']: c['cnt'] for c in res }
+            print '-------', self._unread_posts
 
         if ptype:
             try:
@@ -874,7 +876,8 @@ class User(object):
             except KeyError:
                 return 0
         else:
-            return reduce(lambda memo, cnt: memo + cnt, self._unread_posts, 0)
+            return reduce(lambda memo, cnt: memo + cnt,
+                          self._unread_posts.values(), 0)
 
     def unread_comments_count(self, ptype=None):
         if not self.id:
@@ -888,7 +891,6 @@ class User(object):
                               "FROM posts.unread_comments "
                               "WHERE user_id=%s GROUP BY type;",
                               [self.id])
-            print '----', res
             self._unread_comments = { c['type']: c['cnt'] for c in res }
 
         if ptype:
@@ -897,7 +899,8 @@ class User(object):
             except KeyError:
                 return 0
         else:
-            return reduce(lambda memo, cnt: memo + cnt, self._unread_posts, 0)
+            return reduce(lambda memo, cnt: memo + cnt,
+                          self._unread_comments.values(), 0)
 
     def subs_count(self, cache=True):
         if not cache:

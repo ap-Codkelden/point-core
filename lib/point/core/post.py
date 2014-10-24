@@ -443,11 +443,20 @@ class Post(object):
         if last:
             res.reverse()
 
+        if cuser:
+            unr = db.fetchall("SELECT comment_id FROM posts.unread_comments "
+                              "WHERE user_id=%s AND post_id=%s;",
+                              [cuser.id, unb26(self.id)])
+            unread = { r['comment_id']: 1 for r in unr }
+        else:
+            unread = {}
+
         comments = []
         for c in res:
             author = User.from_data(c['user_id'], c['login'],
                      info={'name': c['name'], 'avatar': c['avatar']})
 
+            unr = True if c['comment_id'] in unread else False
             comment = Comment.from_data(self, id=c['comment_id'],
                                               to_comment_id=c['to_comment_id'],
                                               author=author,
@@ -456,7 +465,8 @@ class Post(object):
                                               recommended=c['recommended'],
                                               bookmarked=c['bookmarked'],
                                               is_rec=c['is_rec'],
-                                              files=c['files'])
+                                              files=c['files'],
+                                              unread=unr)
             comments.append(comment)
 
         redis = RedisPool(settings.storage_socket)
@@ -598,7 +608,8 @@ class Comment(object):
     def from_data(cls, post, id, to_comment_id=None, author=None,
                                  created=None, text=None,
                                  recommended=False, bookmarked=False,
-                                 is_rec=False, archive=False, files=None):
+                                 is_rec=False, archive=False, files=None,
+                                 unread=False):
         self = cls(None, None)
         self.post = post
         if id:
@@ -617,6 +628,7 @@ class Comment(object):
             self.files = files
         else:
             self.files = None
+        self.unread = unread
         return self
 
     def save(self):
