@@ -1116,7 +1116,6 @@ def clear_unread_comments(post_id, comments=None):
     if comments:
         if not isinstance(comments, (list, tuple)):
             comments = [comments]
-        print '--------', post_id, comments
         db.perform("DELETE FROM posts.unread_comments "
                    "WHERE user_id=%s AND post_id=%s AND comment_id=ANY(%s);",
                    [env.user.id, post_id, map(lambda c: int(c), comments)])
