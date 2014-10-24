@@ -258,10 +258,22 @@ def add_post(post, title=None, link=None, tags=None, author=None, to=None,
                         'files': files,
                         'cut': True})
 
+        if post.private:
+            ptype = 'private'
+        else:
+            ptype = post.type
+
+        try:
+            db.batch("INSERT INTO posts.unread_posts "
+                     "(user_id, post_id, type) VALUES (%s, %s, %s)",
+                     [(u, unb26(post_id), ptype) for u in subscribers])
+        except IntegrityError:
+            pass
+
         try:
             db.batch("INSERT INTO posts.recommendations_recv "
-                     "(post_id, comment_id, user_id) VALUES "
-                     "(%s, %s, %s);", [(unb26(post_id), 0, u) for u in subscribers])
+                     "(post_id, comment_id, user_id) VALUES (%s, %s, %s);",
+                     [(unb26(post_id), 0, u) for u in subscribers])
         except IntegrityError:
             pass
 
@@ -945,6 +957,19 @@ def add_comment(post_id, to_comment_id, text, files=None,
                     'to_comment_id':to_comment_id, 'to_text':to_text,
                     'files':files})
 
+    if post.private:
+        ptype = 'private'
+    else:
+        ptype = post.type
+
+    try:
+        db.batch("INSERT INTO posts.unread_comments "
+                 "(user_id, post_id, comment_id, type) VALUES (%s, %s, %s, %s)",
+                 [(u, unb26(post_id), comment_id, ptype) for u in subscribers])
+    #except IntegrityError:
+    finally:
+        pass
+
     if not dont_subscribe:
         try:
             env.user.subscribe(post)
@@ -986,6 +1011,18 @@ def delete_comment(post_id, comment_id):
     comment.delete()
 
     return post
+
+@check_auth
+def clear_unread_comments(post_id, comments=None):
+    post_id=unb26(post_id)
+    if comments:
+        db.perform("DELETE FROM posts.unread_comments "
+                   "WHERE user_id=%s AND post_id=%s AND comment_id=ANY(%s);",
+                   [env.user.id, post_id, comments])
+    else:
+        db.perform("DELETE FROM posts.unread_comments "
+                   "WHERE user_id=%s AND post_id=%s;",
+                   [env.user.id, post_id])
 
 @check_auth
 def delete_last():
@@ -1046,6 +1083,10 @@ def unsubscribe(post_id):
     """
     post = show_post(post_id)
     env.user.unsubscribe(post)
+
+    db.perform("DELETE FROM posts.unread_comments "
+               "WHERE user_id=%s AND post_id=%s;",
+               [env.user.id, unb26(post_id)])
 
     return post
 
@@ -1381,6 +1422,17 @@ def del_recipients(post_id, to):
                       [unb26(post_id), [u.id for u in to_users]])
 
 def _plist(res):
+    unread = {}
+
+    if env.user and env.user.id:
+        ids = [ r['id'] for r in res ]
+        for r in db.fetchall("SELECT post_id, count(post_id) AS cnt "
+                             "FROM posts.unread_comments "
+                             "WHERE user_id=%s AND post_id=ANY(%s)"
+                             "GROUP BY post_id ",
+                             [env.user.id, ids]):
+            unread[r['post_id']] = r['cnt']
+
     plist  = []
     for r in res:
         item = {
@@ -1422,6 +1474,11 @@ def _plist(res):
 
         if 'btext' in r and r['btext']:
             item['btext'] = r['btext']
+
+        try:
+            item['unread'] = unread[r['id']]
+        except KeyError:
+            pass
 
         plist.append(item)
     return plist

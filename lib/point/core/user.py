@@ -854,6 +854,51 @@ class User(object):
         except IndexError:
             return 0
 
+    def unread_posts_count(self, ptype=None):
+        if not self.id:
+            return 0
+
+        if not hasattr(self, '_unread_posts'):
+            self._unread_posts = {}
+
+        if not self._unread_posts:
+            res = db.fetchall("SELECT type, count(post_id) AS cnt "
+                              "FROM posts.unread_posts "
+                              "WHERE user_id=%s GROUP BY type;",
+                              [self.id])
+            self._unread_posts = { c['type']: c['cnt'] for c in res }
+
+        if ptype:
+            try:
+                return self._unread_posts[ptype]
+            except KeyError:
+                return 0
+        else:
+            return reduce(lambda memo, cnt: memo + cnt, self._unread_posts, 0)
+
+    def unread_comments_count(self, ptype=None):
+        if not self.id:
+            return 0
+
+        if not hasattr(self, '_unread_comments'):
+            self._unread_comments = {}
+
+        if not self._unread_comments:
+            res = db.fetchall("SELECT type, count(post_id) AS cnt "
+                              "FROM posts.unread_comments "
+                              "WHERE user_id=%s GROUP BY type;",
+                              [self.id])
+            print '----', res
+            self._unread_comments = { c['type']: c['cnt'] for c in res }
+
+        if ptype:
+            try:
+                return self._unread_comments[ptype]
+            except KeyError:
+                return 0
+        else:
+            return reduce(lambda memo, cnt: memo + cnt, self._unread_posts, 0)
+
     def subs_count(self, cache=True):
         if not cache:
             c = cache_get('subs_count:%s' % self.id)
