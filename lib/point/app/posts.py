@@ -1325,6 +1325,18 @@ def recommend(post_id, comment_id, text=None):
     except IntegrityError:
         pass
 
+    try:
+        if comment_id:
+            db.batch("INSERT INTO posts.unread_comments "
+                     "(user_id, post_id, comment_id, type) VALUES (%s, %s, %s, %s)",
+                     [(u, unb26(post_id), comment_id, post.type) for u in subscribers])
+        else:
+            db.batch("INSERT INTO posts.unread_posts "
+                     "(user_id, post_id, type) VALUES (%s, %s, %s)",
+                     [(u, unb26(post_id), post.type) for u in subscribers])
+    except IntegrityError:
+        pass
+
     return rcid
 
 @check_auth
