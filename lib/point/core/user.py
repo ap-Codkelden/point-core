@@ -866,9 +866,7 @@ class User(object):
                               "FROM posts.unread_posts "
                               "WHERE user_id=%s GROUP BY type;",
                               [self.id])
-            print '-------', res
             self._unread_posts = { c['type']: c['cnt'] for c in res }
-            print '-------', self._unread_posts
 
         if ptype:
             try:
