@@ -69,7 +69,7 @@ def _store_last(inst):
 
     items.append(item)
 
-    cache_store(key, items[:10])
+    cache_store(key, items[-10:])
 
 def _thumbnails(text):
     urls = re.finditer(ur'(?P<url>(?P<proto>\w+)://(?:[\w\.\-%\:]*\@)?(?P<host>[\w\.\-%]+)(?::(?P<port>\d+))?(?P<path>(?:/[^\s\?\u0002\u0003]*)*)(?P<qs>\?[^#\s\u0002\u0003]*)?(?:#(?P<hash>\S+))?)',
