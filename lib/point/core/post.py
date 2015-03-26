@@ -268,18 +268,21 @@ class Post(object):
                     except IntegrityError:
                         pass
 
-        es = elasticsearch.Elasticsearch()
-        es.index(index='point-posts', id=self.id, doc_type='post', body={
-            'post_id': self.id,
-            'post_type': self.type,
-            'created': self.created,
-            'private': self.private,
-            'user_id': self.author.id,
-            'login': self.author.login,
-            'title': self.title,
-            'tags':  self.tags,
-            'text': self.text,
-        })
+        try:
+            es = elasticsearch.Elasticsearch()
+            es.index(index='point-posts', id=self.id, doc_type='post', body={
+                'post_id': self.id,
+                'post_type': self.type,
+                'created': self.created,
+                'private': self.private,
+                'user_id': self.author.id,
+                'login': self.author.login,
+                'title': self.title,
+                'tags':  self.tags,
+                'text': self.text,
+            })
+        except elasticsearch.ConnectionError, e:
+            log.error('Elasticsearch: %s' % e)
 
         return self.id
 
@@ -678,19 +681,22 @@ class Comment(object):
             if res:
                 redis.incr('cmnt_cnt.%s' % unb26(self.post.id))
 
-        es = elasticsearch.Elasticsearch()
-        es.index(index='point-comments',
-                 id='%s-%s' % (self.post.id, self.id),
-                 doc_type='post', body={
-            'post_id': self.post.id,
-            'comment_id': self.id,
-            'post_type': self.post.type,
-            'created': self.created,
-            'private': self.post.private,
-            'user_id': self.author.id,
-            'login': self.author.login,
-            'text': self.text,
-        })
+        try:
+            es = elasticsearch.Elasticsearch()
+            es.index(index='point-comments',
+                     id='%s-%s' % (self.post.id, self.id),
+                     doc_type='post', body={
+                'post_id': self.post.id,
+                'comment_id': self.id,
+                'post_type': self.post.type,
+                'created': self.created,
+                'private': self.post.private,
+                'user_id': self.author.id,
+                'login': self.author.login,
+                'text': self.text,
+            })
+        except elasticsearch.ConnectionError, e:
+            log.error('Elasticsearch: %s' % e)
 
         self.id = comment_id
 
@@ -707,12 +713,15 @@ class Comment(object):
             redis = RedisPool(settings.storage_socket)
             redis.decr('cmnt_cnt.%s' % unb26(self.post.id))
 
-        es = elasticsearch.Elasticsearch()
         try:
-            es.delete(index='point-comments', doc_type='post',
-                      id='%s-%s' % (self.post.id, self.id))
-        except elasticsearch.exceptions.NotFoundError:
-            pass
+            es = elasticsearch.Elasticsearch()
+            try:
+                es.delete(index='point-comments', doc_type='post',
+                          id='%s-%s' % (self.post.id, self.id))
+            except elasticsearch.exceptions.NotFoundError:
+                pass
+        except elasticsearch.ConnectionError, e:
+            log.error('Elasticsearch: %s' % e)
 
     def todict(self):
         return {

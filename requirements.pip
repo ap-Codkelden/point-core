@@ -3,7 +3,8 @@ redis
 jinja2
 PyRSS2Gen
 hg+http://bitbucket.org/arts/geweb
-git+git://github.com/lawnsea/SleekXMPP-gevent.git
+#git+git://github.com/lawnsea/SleekXMPP-gevent.git
+sleekxmpp
 python-dateutil
 Markdown
 feedparser
