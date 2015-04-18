@@ -75,13 +75,17 @@ class UrlColons(Preprocessor):
             , re.IGNORECASE)
 
     def replace(self, m):
-        return('%s%s%s%s%s%s%s' % (m.group('scheme'),
+        try:
+            return('%s%s%s%s%s%s%s' % (m.group('scheme'),
                 m.group('auth'),
                 m.group('host'),
                 m.group('port'),
                 m.group('path'),
                 m.group('query'),
                 re.sub(r':', '%3a', m.group('fragment'))))
+        except:
+            print(m.group('fragment'))
+            raise
 
     def run(self, lines):
         for l in lines:
