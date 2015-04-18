@@ -61,15 +61,15 @@ class UrlColons(Preprocessor):
     ipv4_re = ur'(?:25[0-5]|2[0-4]\d|[0-1]?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}'
     ipv6_re = ur'\[[0-9a-f:\.]+\]'
     # Host patterns
-    hostname_re = ur'[a-z' + self.ul + ur'0-9](?:[a-z' + self.ul + ur'0-9-]*[a-z' + self.ul + ur'0-9])?'
-    domain_re = ur'(?:\.[a-z' + self.ul + ur'0-9]+(?:[a-z' + self.ul + ur'0-9-]*[a-z' + self.ul + ur'0-9]+)*)*'
-    tld_re = ur'\.[a-z' + self.ul + ur']{2,}\.?'
-    host_re = '(' + self.hostname_re + self.domain_re + self.tld_re + '|localhost)'
+    hostname_re = ur'[a-z' + ul + ur'0-9](?:[a-z' + ul + ur'0-9-]*[a-z' + ul + ur'0-9])?'
+    domain_re = ur'(?:\.[a-z' + ul + ur'0-9]+(?:[a-z' + ul + ur'0-9-]*[a-z' + ul + ur'0-9]+)*)*'
+    tld_re = ur'\.[a-z' + ul + ur']{2,}\.?'
+    host_re = '(' + hostname_re + domain_re + tld_re + '|localhost)'
 
     url_re = (
             ur'(?P<scheme>([a-z0-9\.\-]*)://)'  # scheme is validated separately
             ur'(?P<auth>(\S+(?::\S*)?@)?)'  # user:pass authentication
-            ur'(?P<host>(' + self.ipv4_re + '|' + self.ipv6_re + '|' + self.host_re + '))'
+            ur'(?P<host>(' + ipv4_re + '|' + ipv6_re + '|' + host_re + '))'
             ur'(?P<port>(:\d{2,5})?)'  # port
             ur'(?P<resourse>((?P<path>.+?)(?P<query>(\?(?P<qrysub>.+?))?)(?P<fragment>#(?P<frgsub>.+))?))\s'
             , re.IGNORECASE)
