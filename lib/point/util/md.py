@@ -66,7 +66,7 @@ class UrlColons(Preprocessor):
     tld_re = ur'\.[a-z' + ul + ur']{2,}\.?'
     host_re = '(' + hostname_re + domain_re + tld_re + '|localhost)'
 
-    url_re = (
+    url_re = re.compile(
             ur'(?P<scheme>([a-z0-9\.\-]*)://)'  # scheme is validated separately
             ur'(?P<auth>(\S+(?::\S*)?@)?)'  # user:pass authentication
             ur'(?P<host>(' + ipv4_re + '|' + ipv6_re + '|' + host_re + '))'
@@ -85,7 +85,7 @@ class UrlColons(Preprocessor):
 
     def run(self, lines):
         for l in lines:
-            yield re.sub(self.url_re, self.replace, l)
+            yield self.url_re.sub(self.replace, l)
 
 
 class StrikePattern(Pattern):
