@@ -75,21 +75,18 @@ class UrlColons(Preprocessor):
             , re.IGNORECASE)
 
     def replace(self, m):
-        try:
-            return('%s%s%s%s%s%s%s' % (m.group('scheme'),
-                m.group('auth'),
-                m.group('host'),
-                m.group('port'),
-                m.group('path'),
-                m.group('query'),
-                re.sub(r':', '%3a', m.group('fragment'))))
-        except:
-            print(m.group('fragment'))
-            raise
+        return '%s%s%s%s%s%s%s' % (m.group('scheme'),
+            m.group('auth'),
+            m.group('host'),
+            m.group('port'),
+            m.group('path'),
+            m.group('query'),
+            re.sub(r':', '%3a', m.group('fragment')))
 
     def run(self, lines):
         for l in lines:
-            yield self.url_re.sub(self.replace, l)
+            #yield self.url_re.sub(self.replace, l)
+            yield re.sub(self.url_re, self.replace, l)
 
 
 class StrikePattern(Pattern):
