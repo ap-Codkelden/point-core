@@ -67,27 +67,21 @@ class UrlColons(Preprocessor):
     host_re = '(' + hostname_re + domain_re + tld_re + '|localhost)'
 
     url_re = re.compile(
-            ur'(?P<scheme>([a-z0-9\.\-]*)://)'  # scheme is validated separately
-            ur'(?P<auth>(\S+(?::\S*)?@)?)'  # user:pass authentication
-            ur'(?P<host>(' + ipv4_re + '|' + ipv6_re + '|' + host_re + '))'
-            ur'(?P<port>(:\d{2,5})?)'  # port
-            ur'(?P<resourse>((?P<path>.+?)(?P<query>(\?(?P<qrysub>.+?))?)(?P<fragment>#(?P<frgsub>.+))?))\s'
-            , re.IGNORECASE)
+        ur'(?P<scheme>((\w+)://))'
+        ur'(?P<pass>(\S+(?::\S*)?@)?)' 
+        ur'(?P<authority>([^/?#]*)?)'
+        ur'(?P<undef>([^?#]*)?)'
+        ur'(?P<query>(\?([^#]*))?)'
+        ur'(?P<fragment>(#(\S+))?)'
+        , re.IGNORECASE)
 
     def replace(self, m):
-        """return '%s%s%s%s%s%s%s' % (m.group('scheme'),
-            m.group('auth'),
-            m.group('host'),
-            m.group('port'),
-            m.group('path'),
-            m.group('query'),
-            re.sub(r':', '%3a', m.group('fragment')))"""
         return '%s%s%s%s%s%s' % (m.group('scheme'),
-                    m.group('auth'),
-                    m.group('host'),
-                    m.group('port'),
-                    m.group('path'),
-                    m.group('query'))
+            m.group('pass'),
+            m.group('authority'),
+            m.group('undef'),
+            m.group('query'),
+            re.sub(r':', '%3a', m.group('fragment')))
 
     def run(self, lines):
         for l in lines:
