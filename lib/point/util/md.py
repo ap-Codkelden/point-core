@@ -56,14 +56,37 @@ class SharpHeader(Preprocessor):
         return [u"\u0005%s" % l if re.match(r'^#+[a-z]', l) else l for l in lines]
 
 class UrlColons(Preprocessor):
-    url_re = ur'(?P<url>(?P<proto>\w+://)(?P<host>(?:[\w\.\-%\:]*\@)?[\w\.\-%]+(?::\d+)?)(?P<uri>(?:(?:/[^\s\?\u0002\u0003]*)*)(?:\?[^#\s\u0002\u0003]*)?(?:#(?:\S+))?))'
+    ul = u"\u00a1-\uffff" # unicode letters range
+    # IP patterns
+    ipv4_re = ur'(?:25[0-5]|2[0-4]\d|[0-1]?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}'
+    ipv6_re = ur'\[[0-9a-f:\.]+\]'
+    # Host patterns
+    hostname_re = ur'[a-z' + self.ul + ur'0-9](?:[a-z' + self.ul + ur'0-9-]*[a-z' + self.ul + ur'0-9])?'
+    domain_re = ur'(?:\.[a-z' + self.ul + ur'0-9]+(?:[a-z' + self.ul + ur'0-9-]*[a-z' + self.ul + ur'0-9]+)*)*'
+    tld_re = ur'\.[a-z' + self.ul + ur']{2,}\.?'
+    host_re = '(' + self.hostname_re + self.domain_re + self.tld_re + '|localhost)'
+
+    url_re = (
+            ur'(?P<scheme>([a-z0-9\.\-]*)://)'  # scheme is validated separately
+            ur'(?P<auth>(\S+(?::\S*)?@)?)'  # user:pass authentication
+            ur'(?P<host>(' + self.ipv4_re + '|' + self.ipv6_re + '|' + self.host_re + '))'
+            ur'(?P<port>(:\d{2,5})?)'  # port
+            ur'(?P<resourse>((?P<path>.+?)(?P<query>(\?(?P<qrysub>.+?))?)(?P<fragment>#(?P<frgsub>.+))?))\s'
+            , re.IGNORECASE)
 
     def replace(self, m):
-        return '%s%s%s' % (m.group('proto'), m.group('host'), re.sub(r':', '%3a', m.group('uri')))
+        return('%s%s%s%s%s%s%s' % (m.group('scheme'),
+                m.group('auth'),
+                m.group('host'),
+                m.group('port'),
+                m.group('path'),
+                m.group('query'),
+                re.sub(r':', '%3a', m.group('fragment'))))
 
     def run(self, lines):
         for l in lines:
             yield re.sub(self.url_re, self.replace, l)
+
 
 class StrikePattern(Pattern):
     def __init__(self):
