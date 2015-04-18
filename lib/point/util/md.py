@@ -56,16 +56,6 @@ class SharpHeader(Preprocessor):
         return [u"\u0005%s" % l if re.match(r'^#+[a-z]', l) else l for l in lines]
 
 class UrlColons(Preprocessor):
-    ul = u"\u00a1-\uffff" # unicode letters range
-    # IP patterns
-    ipv4_re = ur'(?:25[0-5]|2[0-4]\d|[0-1]?\d?\d)(?:\.(?:25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}'
-    ipv6_re = ur'\[[0-9a-f:\.]+\]'
-    # Host patterns
-    hostname_re = ur'[a-z' + ul + ur'0-9](?:[a-z' + ul + ur'0-9-]*[a-z' + ul + ur'0-9])?'
-    domain_re = ur'(?:\.[a-z' + ul + ur'0-9]+(?:[a-z' + ul + ur'0-9-]*[a-z' + ul + ur'0-9]+)*)*'
-    tld_re = ur'\.[a-z' + ul + ur']{2,}\.?'
-    host_re = '(' + hostname_re + domain_re + tld_re + '|localhost)'
-
     url_re = re.compile(
         ur'(?P<scheme>((\w+)://))'
         ur'(?P<pass>(\S+(?::\S*)?@)?)' 
