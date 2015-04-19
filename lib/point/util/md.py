@@ -1,6 +1,10 @@
 from markdown.preprocessors import Preprocessor
 from markdown.inlinepatterns import Pattern
 from markdown.util import etree
+try:  
+    from urllib.parse import urlparse, urlunparse
+except ImportError:
+    from urlparse import urlparse, urlunparse
 
 try:
     import re2 as re
@@ -88,3 +92,56 @@ class StrikePattern(Pattern):
         s = etree.Element('s')
         s.text = m.group('text')
         return s
+
+
+class LinkPattern(Pattern):
+    """ Return a link element from the given match. """
+    def handleMatch(self, m):
+        el = util.etree.Element("a")
+        el.text = m.group(2)
+        title = m.group(13)
+        href = m.group(9)
+
+        if href:
+            if href[0] == "<":
+                href = href[1:-1]
+            el.set("href", self.sanitize_url(self.unescape(href.strip())))
+        else:
+            el.set("href", "")
+
+        if title:
+            title = dequote(self.unescape(title))
+            el.set("title", title)
+        return el
+
+    def sanitize_url(self, url):
+        if not self.markdown.safeMode:
+            # Return immediately bipassing parsing.
+            return url
+
+        try:
+            scheme, netloc, path, params, query, fragment = url = urlparse(url)
+        except ValueError:  # pragma: no cover
+            # Bad url - so bad it couldn't be parsed.
+            return ''
+
+        locless_schemes = ['', 'mailto', 'news']
+        allowed_schemes = locless_schemes + ['http', 'https', 'ftp', 'ftps']
+        if scheme not in allowed_schemes:
+            # Not a known (allowed) scheme. Not safe.
+            return ''
+
+        if netloc == '' and scheme not in locless_schemes:  # pragma: no cover
+            # This should not happen. Treat as suspect.
+            return ''
+
+        for part in url[2:]:
+            if ":" in part:
+                # !!!
+                print "DANGER!!!"
+                # A colon in "path", "parameters", "query"
+                # or "fragment" is suspect.
+                return ''
+
+        # Url passes all tests. Return url as-is.
+        return urlunparse(url)
