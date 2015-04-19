@@ -1,5 +1,5 @@
 from markdown.preprocessors import Preprocessor
-from markdown.inlinepatterns import Pattern
+from markdown.inlinepatterns import Pattern, LinkPattern
 from markdown.util import etree
 try:  
     from urllib.parse import urlparse, urlunparse
@@ -94,26 +94,7 @@ class StrikePattern(Pattern):
         return s
 
 
-class LinkPattern(Pattern):
-    """ Return a link element from the given match. """
-    def handleMatch(self, m):
-        el = util.etree.Element("a")
-        el.text = m.group(2)
-        title = m.group(13)
-        href = m.group(9)
-
-        if href:
-            if href[0] == "<":
-                href = href[1:-1]
-            el.set("href", self.sanitize_url(self.unescape(href.strip())))
-        else:
-            el.set("href", "")
-
-        if title:
-            title = dequote(self.unescape(title))
-            el.set("title", title)
-        return el
-
+class ColonLinkPattern(LinkPattern):
     def sanitize_url(self, url):
         if not self.markdown.safeMode:
             # Return immediately bipassing parsing.
@@ -137,11 +118,12 @@ class LinkPattern(Pattern):
 
         for part in url[2:]:
             if ":" in part:
+                pass
                 # !!!
-                print "DANGER!!!"
+                #print "DANGER!!!"
                 # A colon in "path", "parameters", "query"
                 # or "fragment" is suspect.
-                return ''
+                #return ''
 
         # Url passes all tests. Return url as-is.
         return urlunparse(url)
