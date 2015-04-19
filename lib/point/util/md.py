@@ -76,7 +76,7 @@ class UrlColons(Preprocessor):
     def run(self, lines):
         for l in lines:
             # !!!
-            print 'line from md: ',l
+            print 'line from md: ', re.sub(self.url_re, self.replace, l)
             yield re.sub(self.url_re, self.replace, l)
 
 
