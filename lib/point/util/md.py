@@ -119,13 +119,15 @@ class ColonLinkPattern(LinkPattern):
         for part in url[2:]:
             if ":" in part:
                 print ">>> part:", part
-                colon_regex = re.compile('/.*\.(jpe?g|png|gif)(:large)?')
+                colon_regex = re.compile('[/\w]*?\.(jpe?g|png|gif)(:large)?')
                 # !!!
-                print "DANGER!!!"
-                # A colon in "path", "parameters", "query"
-                # or "fragment" is suspect.
-
-                return ''
+                if not colon_regex.match(part):
+                    print "DANGER!!!"
+                    # A colon in "path", "parameters", "query"
+                    # or "fragment" is suspect.
+                    return ''
+                else:
+                    print("Ok")
 
         # Url passes all tests. Return url as-is.
         return urlunparse(url)
