@@ -79,8 +79,6 @@ class UrlColons(Preprocessor):
 
     def run(self, lines):
         for l in lines:
-            # !!!
-            print 'line from md: ', re.sub(self.url_re, self.replace, l)
             yield re.sub(self.url_re, self.replace, l)
 
 
@@ -95,6 +93,11 @@ class StrikePattern(Pattern):
 
 
 class ColonLinkPattern(LinkPattern):
+    '''
+    Redefine sanitize_url method of the standart LinkPattern class 
+    because of Twitter use 'size' attribute in pics and other media 
+    enitities (See https://dev.twitter.com/overview/api/entities-in-twitter-objects)
+    '''
     def sanitize_url(self, url):
         if not self.markdown.safeMode:
             # Return immediately bipassing parsing.
@@ -102,7 +105,7 @@ class ColonLinkPattern(LinkPattern):
 
         try:
             scheme, netloc, path, params, query, fragment = url = urlparse(url)
-        except ValueError:  # pragma: no cover
+        except ValueError:
             # Bad url - so bad it couldn't be parsed.
             return ''
 
@@ -118,16 +121,12 @@ class ColonLinkPattern(LinkPattern):
 
         for part in url[2:]:
             if ":" in part:
-                print ">>> part:", part
+                # Check if this is just Twitter media link with 'size'
                 colon_regex = re.compile('[/\w]*?\.(jpe?g|png|gif)(:large)?')
-                # !!!
                 if not colon_regex.match(part):
-                    print "DANGER!!!"
-                    # A colon in "path", "parameters", "query"
+                    # If not -- a colon in "path", "parameters", "query"
                     # or "fragment" is suspect.
                     return ''
-                else:
-                    print("Ok")
 
         # Url passes all tests. Return url as-is.
         return urlunparse(url)
