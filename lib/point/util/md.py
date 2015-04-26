@@ -95,8 +95,8 @@ class StrikePattern(Pattern):
 class ColonLinkPattern(LinkPattern):
     '''
     Redefine sanitize_url method of the standart LinkPattern class 
-    because of Twitter use 'size' attribute in pics and other media 
-    enitities (See https://dev.twitter.com/overview/api/entities-in-twitter-objects)
+    because of Twitter use 'size' attribute in pics and other media enitities 
+    (See https://dev.twitter.com/overview/api/entities-in-twitter-objects)
     '''
     def sanitize_url(self, url):
         if not self.markdown.safeMode:

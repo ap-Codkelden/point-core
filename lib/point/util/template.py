@@ -195,7 +195,7 @@ class CodePre(Treeprocessor):
             pre.text = '<br/>'.join(map(_line, list(pre.itertext())))
             pre.findall('')
 
-md = Markdown(extensions=['nl2br'], safe_mode='escape')
+md = Markdown(extensions=['nl2br', 'smarty'], safe_mode='escape')
 
 md.preprocessors.add('backtick', CodeBacktick(md), '_begin')
 md.preprocessors.add('sharp', SharpHeader(md), '>backtick')
