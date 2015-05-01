@@ -537,11 +537,9 @@ class Post(object):
     def todict(self):
         img_url = lambda i: 'http'+settings.media_root+'/'+i
         if self.files:
-            test = "TRUE"
-            #files = [img_url(i) for i in self.files] 
+            files = [img_url(i) for i in self.files] 
         else:
-            test = "FALSE"
-            #files = self.files
+            files = self.files
         return {
             "id": self.id,
             "author": self.author.todict(),
@@ -550,7 +548,7 @@ class Post(object):
             "created": self.created,
             "tags": self.tags,
             "text": self.text,
-            "test": test,
+            "files": files,
             "comments_count": self.comments_count()
         }
 
