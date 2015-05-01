@@ -548,6 +548,7 @@ class Post(object):
         }
         if self.files:
             d["files"] = [img_url(i) for i in self.files]
+            print '>>> ', d['files']
         return d
 
 class CommentError(PointError):
