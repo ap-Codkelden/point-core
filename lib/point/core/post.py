@@ -536,7 +536,7 @@ class Post(object):
 
     def todict(self):
         img_url = lambda i: 'http'+settings.media_root+'/'+i
-        d = {
+        post_dict = {
             "id": self.id,
             "author": self.author.todict(),
             "private": self.private,
@@ -547,9 +547,8 @@ class Post(object):
             "comments_count": self.comments_count()
         }
         if self.files:
-            d["files"] = [img_url(i) for i in self.files]
-            print '>>> ', d['files']
-        return d
+            post_dict["files"] = [img_url(i) for i in self.files]
+        return post_dict
 
 class CommentError(PointError):
     def __init__(self, post_id=None, comment_id=None, *args, **kwargs):
