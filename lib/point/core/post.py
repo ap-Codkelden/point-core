@@ -536,11 +536,7 @@ class Post(object):
 
     def todict(self):
         img_url = lambda i: 'http'+settings.media_root+'/'+i
-        if self.files:
-            files = [img_url(i) for i in self.files] 
-        else:
-            files = self.files
-        return {
+        d = {
             "id": self.id,
             "author": self.author.todict(),
             "private": self.private,
@@ -548,9 +544,11 @@ class Post(object):
             "created": self.created,
             "tags": self.tags,
             "text": self.text,
-            "files": files,
             "comments_count": self.comments_count()
         }
+        if self.files:
+            d["files"] = [img_url(i) for i in self.files]
+        return d
 
 class CommentError(PointError):
     def __init__(self, post_id=None, comment_id=None, *args, **kwargs):
