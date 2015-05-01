@@ -538,7 +538,7 @@ class Post(object):
         # !!!
         test = settings.media_root if self.files else "NO_FILES"
         return {
-            "test": test
+            "test": test,
             "id": self.id,
             "author": self.author.todict(),
             "private": self.private,
