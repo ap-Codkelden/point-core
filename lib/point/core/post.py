@@ -543,6 +543,7 @@ class Post(object):
             "created": self.created,
             "tags": self.tags,
             "text": self.text,
+            "files": self.files,
             "comments_count": self.comments_count()
         }
 
