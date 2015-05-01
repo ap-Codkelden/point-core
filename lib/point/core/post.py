@@ -535,11 +535,13 @@ class Post(object):
         return [ User.from_data(r[0], r[1]) for r in res ]
 
     def todict(self):
-        #img_url = lambda i: 'http'+settings.media_root+'/'+i
-        #if self.files:
-        #    files = [img_url(i) for i in self.files]
-        #else:
-        #    files = self.files
+        img_url = lambda i: 'http'+settings.media_root+'/'+i
+        if self.files:
+            test = "TRUE"
+            #files = [img_url(i) for i in self.files] 
+        else:
+            test = "FALSE"
+            #files = self.files
         return {
             "id": self.id,
             "author": self.author.todict(),
@@ -548,7 +550,7 @@ class Post(object):
             "created": self.created,
             "tags": self.tags,
             "text": self.text,
-            "files": self.files,
+            "test": test,
             "comments_count": self.comments_count()
         }
 
