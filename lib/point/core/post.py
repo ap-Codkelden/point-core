@@ -535,10 +535,10 @@ class Post(object):
         return [ User.from_data(r[0], r[1]) for r in res ]
 
     def todict(self):
-        # !!!
-        test = settings.media_root if self.files else "NO_FILES"
+        if self.files:
+            img_url = lambda i: 'http'+settings.media_root+i
+            files = [img_url(i) for i in self.files]
         return {
-            "test": test,
             "id": self.id,
             "author": self.author.todict(),
             "private": self.private,
@@ -546,7 +546,7 @@ class Post(object):
             "created": self.created,
             "tags": self.tags,
             "text": self.text,
-            "files": self.files,
+            "files": files,
             "comments_count": self.comments_count()
         }
 
