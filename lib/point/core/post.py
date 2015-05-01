@@ -535,9 +535,8 @@ class Post(object):
         return [ User.from_data(r[0], r[1]) for r in res ]
 
     def todict(self):
-        if self.files:
-            img_url = lambda i: 'http'+settings.media_root+'/'+i
-            files = [img_url(i) for i in self.files]
+        img_url = lambda i: 'http'+settings.media_root+'/'+i
+        files = [img_url(i) for i in self.files] if self.files else self.files
         return {
             "id": self.id,
             "author": self.author.todict(),
