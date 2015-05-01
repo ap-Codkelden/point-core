@@ -536,7 +536,10 @@ class Post(object):
 
     def todict(self):
         img_url = lambda i: 'http'+settings.media_root+'/'+i
-        files = [img_url(i) for i in self.files] if self.files else self.files
+        if self.files:
+            files = [img_url(i) for i in self.files]
+        else:
+            files = self.files
         return {
             "id": self.id,
             "author": self.author.todict(),
