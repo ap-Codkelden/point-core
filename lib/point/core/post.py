@@ -19,7 +19,8 @@ class PostError(PointError):
         PointError.__init__(self, *args, **kwargs)
 
 class PostNotFound(PostError):
-    pass
+    code = 404
+    message = 'Post Not Found'
 
 class PostAuthorError(PostError):
     pass
@@ -553,7 +554,8 @@ class CommentError(PointError):
         PointError.__init__(self, *args, **kwargs)
 
 class CommentNotFound(CommentError):
-    pass
+    code = 404
+    message = 'Comment Not Found'
 
 class CommentAuthorError(CommentError):
     pass

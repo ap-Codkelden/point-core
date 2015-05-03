@@ -29,13 +29,15 @@ class AlreadyAuthorized(UserError):
     pass
 
 class NotAuthorized(UserError):
-    pass
+    code = 401
+    message = 'Not Authorized'
 
 class UserExists(UserError):
     pass
 
 class UserNotFound(UserError):
-    pass
+    code = 404
+    message = 'User Not Found'
 
 class AlreadySubscribed(UserError):
     pass
