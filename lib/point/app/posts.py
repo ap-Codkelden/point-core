@@ -468,7 +468,8 @@ def select_posts(author=None, author_private=None, deny_anonymous=None, private=
     joins = []
     if tags:
         joins.append("JOIN posts.tags t ON p.id=t.post_id")
-    if author_private is not None:
+    #if author_private is not None:
+    if tags or author_private is not None:
         joins.append("JOIN users.profile up ON up.id=u.id")
 
     if env.user.id:
