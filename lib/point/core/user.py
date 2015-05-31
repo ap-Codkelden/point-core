@@ -160,10 +160,11 @@ class User(object):
 
     @classmethod
     def user_by_id(cls, id):
+        """Return User class instance for given user id"""
         res = db.fetchone("SELECT login FROM users.logins "
                          "WHERE id=%s;", [id])
         if res:
-            return cls(res[0])
+            return cls(res[0], login)
 
         raise UserNotFound
 
