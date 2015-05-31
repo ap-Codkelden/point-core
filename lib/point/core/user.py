@@ -149,7 +149,7 @@ class User(object):
         if 'password' in kwargs and kwargs['password']:
             self.set_password(kwargs['password'])
 
-        #self.info = {}
+        #self.info = {} 
 
         return self
 
@@ -160,7 +160,8 @@ class User(object):
 
     @classmethod
     def user_by_id(cls, id):
-        """Return User class instance for given user id"""
+        """Return User class instance for given user id. If user with this id 
+        does not exists, UserNotFound exception raised."""
         res = db.fetchone("SELECT login FROM users.logins "
                          "WHERE id=%s;", [id])
         if res:
