@@ -159,6 +159,15 @@ class User(object):
         return sha1('%s%s' % (settings.secret, phash)).hexdigest().lower()
 
     @classmethod
+    def user_by_id(cls, id):
+        res = db.fetchone("SELECT login FROM users.logins "
+                         "WHERE id=%s;", [id])
+        if res:
+            return cls(res[0])
+
+        raise UserNotFound
+
+    @classmethod
     def authenticate(cls, login, password):
         res = db.fetchone("SELECT id FROM users.logins "
                          "WHERE lower(login)=%s AND password=%s;",
