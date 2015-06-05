@@ -98,8 +98,12 @@ class Post(object):
             if text is not None:
                 if isinstance(text, str):
                     self.text = text.decode('utf8').strip()[:1048576]
+                    # !!!
+                    print(">>> self.text", self.text)
                 elif isinstance(text, unicode):
                     self.text = text.strip()[:1048576]
+                    # !!!
+                    print(">>> self.text", self.text)
                 if len(self.text) < 3:
                     raise PostTextError
             else:
