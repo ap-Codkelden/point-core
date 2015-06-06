@@ -454,9 +454,8 @@ def _user_bl_tags_qry():
     res = db.fetchall(query)
     if res:
         for row in res:
-            q = "(NOT " + "(p.author = %(author)s AND ('%(tags)s' && p.tags)))" % {'author': u[0],'tags': tag_array(u[1])}
+            q = "(NOT " + "(p.author = %(author)s AND ('%(tags)s' && p.tags)))" % {'author': row[0],'tags': tag_array(row[1])}
             joins.append(q)
-        #return " AND ("+" AND ".join(joins)+") "
         return joins
     return
 
