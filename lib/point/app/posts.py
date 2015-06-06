@@ -448,7 +448,7 @@ def _get_user_bl_tag_cond():
     query = ("SELECT t.to_user_id, array_agg(t.tag) "
              "FROM posts.tags_blacklist_user t "
              "WHERE t.user_id = %(user_id)s GROUP BY t.to_user_id;" % \
-             {'user_id': env.user_id})
+             {'user_id': env.user.id})
     res = db.fetchall(query)
     print(res)
 
