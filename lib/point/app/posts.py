@@ -445,12 +445,18 @@ def update_tags(post_id, taglist, save=True):
         post.save()
 
 def _get_user_bl_tag_cond():
+    joins = []
+    tag_array=lambda tags: '{'+','.join(tags)+'}'
     query = ("SELECT t.to_user_id, array_agg(t.tag) "
              "FROM posts.tags_blacklist_user t "
              "WHERE t.user_id = %(user_id)s GROUP BY t.to_user_id;" % \
              {'user_id': env.user.id})
     res = db.fetchall(query)
-    print(res)
+    if res:
+        for row in res:
+            qry = " NOT " + "(p.author = %(author)s AND " % {'author': row[0]} + " %(tags)s && p.tags " % {'tags': tag_array(row[1])}
+            joins.append(qry)
+    print(joins)
 
 def select_posts(author=None, author_private=None, deny_anonymous=None, private=None, tags=None,
                  blacklist=False, limit=10, offset=0, asc=False, before=None):
