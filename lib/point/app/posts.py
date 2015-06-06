@@ -444,7 +444,7 @@ def update_tags(post_id, taglist, save=True):
     if save:
         post.save()
 
-def _get_user_bl_tag_cond():
+def _user_bl_tags_qry():
     joins = []
     tag_array=lambda tags: '{'+','.join(tags)+'}'
     query = ("SELECT t.to_user_id, array_agg(t.tag) "
@@ -454,9 +454,11 @@ def _get_user_bl_tag_cond():
     res = db.fetchall(query)
     if res:
         for row in res:
-            qry = " NOT " + "(p.author = %(author)s AND " % {'author': row[0]} + " %(tags)s && p.tags " % {'tags': tag_array(row[1])}
-            joins.append(qry)
-    print(joins)
+            q = "(NOT " + "(p.author = %(author)s AND ('%(tags)s' && p.tags)))" % {'author': u[0],'tags': tag_array(u[1])}
+            joins.append(q)
+        #return " AND ("+" AND ".join(joins)+") "
+        return joins
+    return
 
 def select_posts(author=None, author_private=None, deny_anonymous=None, private=None, tags=None,
                  blacklist=False, limit=10, offset=0, asc=False, before=None):
@@ -573,7 +575,11 @@ def recent_posts(limit=10, offset=0, asc=False, type=None, before=None):
     Get recent incoming posts/recommendations
     """
     # !!!
-    _get_user_bl_tag_cond()
+    bl_user_tags = _user_bl_tags_qry()
+    bl_user_tags_cond = " AND (%s) " % " AND ".join(bl_user_tags) if bl_user_tags else ''
+    print(bl_user_tags_cond)
+
+
     order = 'ASC' if asc else 'DESC'
 
     type_cond = " AND p.type='%s'" % type if type else ''
