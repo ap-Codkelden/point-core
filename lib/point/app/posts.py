@@ -444,6 +444,14 @@ def update_tags(post_id, taglist, save=True):
     if save:
         post.save()
 
+def _get_user_bl_tag_cond():
+    query = ("SELECT t.to_user_id, array_agg(t.tag) "
+             "FROM posts.tags_blacklist_user t "
+             "WHERE t.user_id = %(user_id)s GROUP BY t.to_user_id;" % \
+             {'user_id': env.user_id})
+    res = db.fetchall(query)
+    print(res)
+
 def select_posts(author=None, author_private=None, deny_anonymous=None, private=None, tags=None,
                  blacklist=False, limit=10, offset=0, asc=False, before=None):
     if author and isinstance(author, (int, long)):
@@ -472,6 +480,8 @@ def select_posts(author=None, author_private=None, deny_anonymous=None, private=
         joins.append("JOIN users.profile up ON up.id=u.id")
 
     if env.user.id:
+        # !!!
+        _get_user_bl_tag_cond()
         query = ("SELECT DISTINCT p.id, NULL AS comment_id, "
                  "p.author, u.login, i.name, i.avatar, "
                  "u.type AS user_type, "
