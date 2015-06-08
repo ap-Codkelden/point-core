@@ -576,7 +576,7 @@ def recent_posts(limit=10, offset=0, asc=False, type=None, before=None):
     # !!!
     bl_user_tags = _user_bl_tags_qry()
     bl_user_tags_cond = " AND (%s) " % " AND ".join(bl_user_tags) if bl_user_tags else ''
-    print(bl_user_tags_cond)
+    #print(bl_user_tags_cond)
 
 
     order = 'ASC' if asc else 'DESC'
@@ -652,9 +652,11 @@ def recent_posts(limit=10, offset=0, asc=False, type=None, before=None):
            "ON %%(user_id)s=rb.user_id AND "
            "r.post_id=rb.post_id  AND "
            "COALESCE(r.comment_id, 0)=rb.comment_id "
-        "WHERE r.rcpt_id=%%(user_id)s %s %s "
+        "WHERE r.rcpt_id=%%(user_id)s %s %s %s "
+        #"WHERE r.rcpt_id=%%(user_id)s %s %s "
         "ORDER BY r.created %s "
-        "%s LIMIT %%(limit)s;" % (type_cond, before_cond, order, offset),
+        # "%s LIMIT %%(limit)s;" % (type_cond, before_cond, order, offset),
+        "%s LIMIT %%(limit)s;" % (type_cond, before_cond, bl_user_tags_cond, order, offset),
         {'user_id': env.user.id, 'tz': env.user.get_profile('tz'),
          'limit': limit, 'edit_expire': settings.edit_expire})
 
