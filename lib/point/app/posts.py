@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from geweb import log
 import geweb.db.pgsql as db
 from point.util.env import env
@@ -445,6 +447,10 @@ def update_tags(post_id, taglist, save=True):
         post.save()
 
 def _user_bl_tags_qry():
+    """Процедура формирует условие запроса для ограничения выборки по тегам 
+    пользователей, которые в BL у пользователя, от имени которого формируется 
+    запрос.
+    """
     joins = []
     tag_array=lambda tags: '{'+','.join(tags)+'}'
     query = ("SELECT t.to_user_id, array_agg(t.tag) "
@@ -650,9 +656,7 @@ def recent_posts(limit=10, offset=0, asc=False, type=None, before=None):
            "r.post_id=rb.post_id  AND "
            "COALESCE(r.comment_id, 0)=rb.comment_id "
         "WHERE r.rcpt_id=%%(user_id)s %s %s %s "
-        #"WHERE r.rcpt_id=%%(user_id)s %s %s "
         "ORDER BY r.created %s "
-        # "%s LIMIT %%(limit)s;" % (type_cond, before_cond, order, offset),
         "%s LIMIT %%(limit)s;" % (type_cond, before_cond, bl_user_tags_cond, order, offset),
         {'user_id': env.user.id, 'tz': env.user.get_profile('tz'),
          'limit': limit, 'edit_expire': settings.edit_expire})
@@ -752,9 +756,7 @@ def recent_blog_posts(author=None, limit=10, offset=0, asc=False, before=None):
         "WHERE r.user_id=%%(author_id)s AND "
             "(w.user_id IS NOT NULL OR pp.private=false "
              "OR r.user_id=%%(user_id)s) %s %s "
-        #"ORDER BY r.created %s "
         "ORDER BY r.created %s "
-        #"%s LIMIT %%(limit)s;"% (before_cond, order, offset),
         "%s LIMIT %%(limit)s;"% (before_cond, bl_user_tags_cond, order, offset),
         {'user_id': env.user.id, 'author_id': author.id,
          'tz': env.user.get_profile('tz'),
