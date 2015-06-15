@@ -13,14 +13,16 @@ mkdir -p $backup_dir
 
 find $backup_dir -type f -mtime +$rotate -exec rm '{}' \;
 
-declare -A ftp_host=()
-declare -A ftp_port=()
-declare -A ftp_dir=()
-declare -A ftp_user=()
-declare -A ftp_pass=()
-
 . "./.credentials"
 
-for i in $backup_hosts; do
-  lftp -e "mirror -R $backup_dir ${ftp_dir[$i]}/$1; bye;" -u "${ftp_user[$i]},${ftp_pass[$i]}" "${ftp_host[$i]}"
+i=0
+cnt=${#host[*]}
+while [ $i -lt $cnt ]; do
+  if [[ ${host[$i]} == '-u'* ]]; then
+    lftp -e "mirror -R -e $backup_dir $1; bye;" ${host[$i]}
+  else
+    rsync -a --delete $backup_dir "${host[$i]}/$1"
+  fi
+
+  let "i = $i + 1"
 done
