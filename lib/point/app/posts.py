@@ -554,7 +554,7 @@ def select_posts(author=None, author_private=None, deny_anonymous=None, private=
     return _plist(plist)
 
 @check_auth
-def recent_posts(limit=10, offset=0, asc=False, type=None, before=None):
+def recent_posts(limit=10, offset=0, asc=False, type=None, unread=False, before=None):
     """
     Get recent incoming posts/recommendations
     """
@@ -571,6 +571,12 @@ def recent_posts(limit=10, offset=0, asc=False, type=None, before=None):
     else:
         before_cond = ""
         offset = ""
+
+    if unread:
+        unread = ("INNER JOIN posts.unread_posts unp ON unp.user_id=%d "
+                  "AND unp.post_id=p.id ") % env.user.id
+    else:
+        unread = ""
 
     res = db.fetchall(
         "SELECT "
@@ -609,14 +615,15 @@ def recent_posts(limit=10, offset=0, asc=False, type=None, before=None):
             "AS editable "
         "FROM posts.recent r "
         "LEFT JOIN users.logins ur ON r.user_id=ur.id "
+        "LEFT JOIN posts.posts p ON r.post_id=p.id "
+        "%s "
+        "LEFT JOIN users.logins up ON p.author=up.id "
+        "LEFT JOIN users.info ip ON p.author=ip.id "
         "LEFT OUTER JOIN users.info ir ON r.user_id=ir.id "
         "LEFT OUTER JOIN posts.recommendations rc "
            "ON r.is_rec=true AND r.user_id=rc.user_id AND "
            "r.post_id=rc.post_id  AND "
            "COALESCE(r.comment_id, 0)=rc.comment_id "
-        "LEFT JOIN posts.posts p ON r.post_id=p.id "
-        "LEFT JOIN users.logins up ON p.author=up.id "
-        "LEFT JOIN users.info ip ON p.author=ip.id "
         "LEFT OUTER JOIN posts.comments c "
            "ON r.post_id=c.post_id AND r.comment_id=c.comment_id "
         "LEFT OUTER JOIN users.logins uc ON c.author=uc.id "
@@ -633,7 +640,7 @@ def recent_posts(limit=10, offset=0, asc=False, type=None, before=None):
            "COALESCE(r.comment_id, 0)=rb.comment_id "
         "WHERE r.rcpt_id=%%(user_id)s %s %s "
         "ORDER BY r.created %s "
-        "%s LIMIT %%(limit)s;" % (type_cond, before_cond, order, offset),
+        "%s LIMIT %%(limit)s;" % (unread, type_cond, before_cond, order, offset),
         {'user_id': env.user.id, 'tz': env.user.get_profile('tz'),
          'limit': limit, 'edit_expire': settings.edit_expire})
 
