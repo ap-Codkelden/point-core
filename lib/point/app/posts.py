@@ -986,16 +986,17 @@ def recent_commented_posts(limit=10, offset=None, asc=False, unread=False, befor
             "p.created at time zone %%(tz)s AS created, "
             "p.edited, "
             "(p.edited=false AND p.created+interval '1800 second' >= now()) AS editable, "
-            "max(c.comment_id) AS lc_id, "
+            "max(unc.comment_id) AS lc_id, "
             "p.archive, p.files, "
-            "true AS subscribed, "
+            "sp.post_id AS subscribed, "
             "rp.post_id AS recommended, "
             "rb.post_id AS bookmarked "
             "FROM posts.unread_comments unc "
             "JOIN posts.posts p ON p.id=unc.post_id "
-            "JOIN posts.comments c ON p.id=c.post_id "
-            "LEFT JOIN users.logins u ON p.author=u.id "
+            "JOIN users.logins u ON p.author=u.id "
             "LEFT OUTER JOIN users.info i ON p.author=i.id "
+            "LEFT OUTER JOIN subs.posts sp ON sp.post_id=p.id "
+                "AND sp.user_id=%%(user_id)s "
             "LEFT OUTER JOIN posts.recommendations rp "
                "ON p.id=rp.post_id AND %%(user_id)s=rp.user_id AND "
                "rp.comment_id=0 "
@@ -1003,9 +1004,10 @@ def recent_commented_posts(limit=10, offset=None, asc=False, unread=False, befor
                "ON p.id=rb.post_id AND %%(user_id)s=rb.user_id AND "
                "rb.comment_id=0 "
             "WHERE unc.user_id=%%(user_id)s AND p.private=false "
-            "GROUP BY p.id, u.login, i.name, i.avatar, rp.post_id, rb.post_id "
-            "ORDER BY max(c.created) %s "
-            "%s LIMIT %%(limit)s;"% (order, offset_cond),
+            "GROUP BY unc.post_id, p.id, u.login, i.name, i.avatar, "
+                "sp.post_id, rp.post_id, rb.post_id "
+            "ORDER BY max(unc.created) DESC "
+            "%s LIMIT %%(limit)s;" % (offset_cond),
             {'user_id': env.user.id, 'tz': env.user.get_profile('tz'),
              'limit': limit, 'edit_expire': settings.edit_expire})
     else:
