@@ -133,6 +133,9 @@ class User(object):
             return False
         return self.id - other.id
 
+    def __getattr__(self, attr):
+        return self.get_info(attr)
+
     @classmethod
     def from_data(cls, id, login, **kwargs):
         self = cls(None, None)
