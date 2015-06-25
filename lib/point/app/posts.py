@@ -1588,8 +1588,7 @@ def _plist(res):
                 'comment_id': r['r_comment_id']
             }
 
-        if post.comments_count():
-            item['editable'] = False
+        item['comments_count'] = post.comments_count()
 
         if 'comment_id' in r and r['comment_id']:
             item['comment_id'] = r['comment_id']
