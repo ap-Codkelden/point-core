@@ -135,7 +135,7 @@ class ColonLinkPattern(LinkPattern):
         return urlunparse(url)
 
 
-def RemoveHRFromFootnotesDiv(self, root):
+def RemoveHRFromFootnotesDiv(root):
     """Возвращает блок сносок <div> как элемент ElementTree. 
     Отличается от нативного метода класса FootnoteExtension только 
     ампутированным <hr> (ниже он закомментирован)"""
