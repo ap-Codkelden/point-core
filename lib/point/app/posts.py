@@ -1625,7 +1625,7 @@ def _plist(res):
                              [env.user.id, ids]):
             unread[r['post_id']] = r['cnt']
 
-        clear_unread_posts(ids)
+        clear_unread_posts(ids[0:settings.page_limit])
 
     plist  = []
     for r in res:
