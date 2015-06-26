@@ -160,8 +160,8 @@ def RemoveHRFromFootnotesDiv(self, root):
             backlink.set("rev", "footnote")  # Invalid in HTML5
         backlink.set("class", "footnote-backref")
         backlink.set(
-            "title",
-            "Назад к сноске %d" %
+            u'title',
+            u'Назад к сноске %d' %
             (self.footnotes.index(id)+1)
         )
         backlink.text = FN_BACKLINK_TEXT
