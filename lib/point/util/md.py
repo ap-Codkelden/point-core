@@ -139,7 +139,8 @@ class ColonLinkPattern(LinkPattern):
 def RemoveHRFromFootnotesDiv(self, root):
     """Возвращает блок сносок <div> как элемент ElementTree. 
     Отличается от нативного метода класса FootnoteExtension только 
-    ампутированным <hr> (ниже он закомментирован)"""
+    ампутированным <hr> (ниже он закомментирован).
+    CSS класс блока -- ``footnote``"""
 
     if not list(self.footnotes.keys()):
         return None
@@ -160,7 +161,7 @@ def RemoveHRFromFootnotesDiv(self, root):
         backlink.set("class", "footnote-backref")
         backlink.set(
             "title",
-            "Jump back to footnote %d in the text" %
+            "Назад к сноске %d" %
             (self.footnotes.index(id)+1)
         )
         backlink.text = FN_BACKLINK_TEXT
