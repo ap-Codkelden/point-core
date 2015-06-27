@@ -1,23 +1,23 @@
 # -*- coding: utf-8 -*-
 
 """
-Unique Footnotes Extension for Python-Markdown
+Расширение поддержки сносок для Python-Markdown с уникальными id
 =======================================
 
-Полностью аналогично Adds unique footnote handling to Python-Markdown.
+(C) Point.im Project
+Лицензия BSD <http://www.opensource.org/licenses/bsd-license.php>
 
-See <https://pythonhosted.org/Markdown/extensions/footnotes.html>
-for documentation.
-
-Оригинальный код (С) The Python Markdown Project
+На основе оригинального кода Python-Markdown (С) The Python Markdown Project
 <https://github.com/waylan/Python-Markdown>
+Документация <https://pythonhosted.org/Markdown/extensions/footnotes.html>
 
-Изменения
+Изменения и отличия от оригинального кода:
 
-Лицензия: [BSD](http://www.opensource.org/licenses/bsd-license.php)
-
-ампутирован unique_prefix 
-unique_ids
+  - ``id`` сносок теперь представляют собой рандомно сгененрированные 
+    последовательности, состоящие из 6 символов латинского алфавита
+  - удален ``unique_prefix``
+  - удалена опция ``UNIQUE_IDS``
+  - из блока сносок ампутирован <hr>, CSS класс блока назвается ``post-footnote``
 
 """
 
@@ -59,8 +59,6 @@ class UniqueFootnoteExtension(Extension):
                  "to the reader's place."]
         }
         super(UniqueFootnoteExtension, self).__init__(*args, **kwargs)
-        
-        #self.unique_prefix = 0
         self.reset()
 
     def extendMarkdown(self, md, md_globals):
@@ -133,8 +131,7 @@ class UniqueFootnoteExtension(Extension):
             return None
 
         div = etree.Element("div")
-        div.set('class', 'footnote')
-        etree.SubElement(div, "hr")
+        div.set('class', 'post-footnote')
         ol = etree.SubElement(div, "ol")
 
         for id in self.footnotes.keys():
@@ -173,13 +170,11 @@ class FootnotePreprocessor(Preprocessor):
     def run(self, lines):
         """
         Loop through lines and find, set, and remove footnote definitions.
-
         Keywords:
 
         * lines: A list of lines of text
 
         Return: A list of lines of text with footnote definitions removed.
-
         """
         newlines = []
         i = 0
@@ -200,13 +195,11 @@ class FootnotePreprocessor(Preprocessor):
 
     def detectTabbed(self, lines):
         """ Find indented text and remove indent before further proccesing.
-
         Keyword arguments:
 
         * lines: an array of strings
 
         Returns: a list of post processed items and the index of last line.
-
         """
         items = []
         blank_line = False  # have we encountered a blank line yet?

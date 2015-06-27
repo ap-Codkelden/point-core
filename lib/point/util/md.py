@@ -3,7 +3,6 @@
 from markdown.preprocessors import Preprocessor
 from markdown.inlinepatterns import Pattern, LinkPattern
 from markdown.util import etree
-#from markdown.extensions.footnotes import FN_BACKLINK_TEXT, NBSP_PLACEHOLDER
 
 try:  
     from urllib.parse import urlparse, urlunparse
@@ -134,45 +133,3 @@ class ColonLinkPattern(LinkPattern):
 
         # Url passes all tests. Return url as-is.
         return urlunparse(url)
-
-
-def RemoveHRFromFootnotesDiv(self, root):
-    """Возвращает блок сносок <div> как элемент ElementTree. 
-    Отличается от нативного метода класса FootnoteExtension только 
-    ампутированным <hr> (ниже он закомментирован).
-    CSS класс блока -- ``post-footnote``
-    """
-
-    if not list(self.footnotes.keys()):
-        return None
-
-    div = etree.Element("div")
-    div.set('class', 'post-footnote')
-    # etree.SubElement(div, "hr")
-    ol = etree.SubElement(div, "ol")
-
-    for id in self.footnotes.keys():
-        li = etree.SubElement(ol, "li")
-        li.set("id", self.makeFootnoteId(id))
-        self.parser.parseChunk(li, self.footnotes[id])
-        backlink = etree.Element("a")
-        backlink.set("href", "#" + self.makeFootnoteRefId(id))
-        if self.md.output_format not in ['html5', 'xhtml5']:
-            backlink.set("rev", "footnote")  # Invalid in HTML5
-        backlink.set("class", "footnote-backref")
-        backlink.set(
-            u'title',
-            u'Назад к сноске %d' %
-            (self.footnotes.index(id)+1)
-        )
-        backlink.text = FN_BACKLINK_TEXT
-
-        if li.getchildren():
-            node = li[-1]
-            if node.tag == "p":
-                node.text = node.text + NBSP_PLACEHOLDER
-                node.append(backlink)
-            else:
-                p = etree.SubElement(li, "p")
-                p.append(backlink)
-    return div
