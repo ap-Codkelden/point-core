@@ -4,14 +4,17 @@
 Unique Footnotes Extension for Python-Markdown
 =======================================
 
-Adds unique footnote handling to Python-Markdown.
+Полностью аналогично Adds unique footnote handling to Python-Markdown.
 
 See <https://pythonhosted.org/Markdown/extensions/footnotes.html>
 for documentation.
 
-Copyright The Python Markdown Project
+Оригинальный код (С) The Python Markdown Project
+<https://github.com/waylan/Python-Markdown>
 
-License: [BSD](http://www.opensource.org/licenses/bsd-license.php)
+Изменения
+
+Лицензия: [BSD](http://www.opensource.org/licenses/bsd-license.php)
 
 ампутирован unique_prefix 
 unique_ids
@@ -50,13 +53,14 @@ class UniqueFootnoteExtension(Extension):
                 ["///Footnotes Go Here///",
                  "The text string that marks where the footnotes go"],
             "BACKLINK_TEXT":
-                ["&#8617;",
+                #["&#8617;",
+                ["&#11023;",
                  "The text string that links from the footnote "
                  "to the reader's place."]
         }
         super(UniqueFootnoteExtension, self).__init__(*args, **kwargs)
         
-        self.unique_prefix = 0
+        #self.unique_prefix = 0
         self.reset()
 
     def extendMarkdown(self, md, md_globals):
@@ -87,7 +91,7 @@ class UniqueFootnoteExtension(Extension):
     def reset(self):
         """ Clear footnotes on reset, and prepare for distinct document. """
         self.footnotes = OrderedDict()
-        self.unique_prefix += 1
+        #self.unique_prefix += 1
 
     def findFootnotesPlaceholder(self, root):
         """ Return ElementTree Element that contains Footnote placeholder. """
@@ -143,8 +147,8 @@ class UniqueFootnoteExtension(Extension):
                 backlink.set("rev", "footnote")  # Invalid in HTML5
             backlink.set("class", "footnote-backref")
             backlink.set(
-                "title",
-                "Jump back to footnote %d in the text" %
+                u'title',
+                u'Назад к сноске %d' %
                 (self.footnotes.index(id)+1)
             )
             backlink.text = FN_BACKLINK_TEXT
