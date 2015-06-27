@@ -115,7 +115,7 @@ class FootnoteExtension(Extension):
 
     def makeFootnoteId(self, id):
         """ Return footnote link id. """
-            return 'fn%s%s' % (self.get_separator(), id)
+        return 'fn%s%s' % (self.get_separator(), id)
 
     def makeFootnoteRefId(self, id):
         """ Return footnote back-link id. """
