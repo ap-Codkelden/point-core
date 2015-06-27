@@ -135,7 +135,7 @@ class UniqueFootnoteExtension(Extension):
 
         for id in self.footnotes.keys():
             li = etree.SubElement(ol, "li")
-            li.set("id", self.makeFootnoteId(id)
+            li.set("id", self.makeFootnoteId(id))
             self.parser.parseChunk(li, self.footnotes[id][1])
             backlink = etree.Element("a")
             backlink.set("href", "#" + self.makeFootnoteRefId(id))
