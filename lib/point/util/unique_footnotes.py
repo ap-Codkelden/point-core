@@ -53,6 +53,8 @@ class UniqueFootnoteExtension(Extension):
                  "to the reader's place."]
         }
         super(UniqueFootnoteExtension, self).__init__(*args, **kwargs)
+        
+        self.unique_prefix = 0
         self.reset()
 
     def extendMarkdown(self, md, md_globals):
