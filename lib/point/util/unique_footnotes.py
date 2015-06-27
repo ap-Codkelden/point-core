@@ -36,7 +36,7 @@ NBSP_PLACEHOLDER = "qq3936677670287331zz"
 DEF_RE = re.compile(r'[ ]{0,3}\[\^([^\]]*)\]:\s*(.*)')
 TABBED_RE = re.compile(r'((\t)|(    ))(.*)')
 
-def _unique_id(self):
+def _unique_id():
     return ''.join(choice(lowercase) for i in range(6))
 
 class UniqueFootnoteExtension(Extension):
