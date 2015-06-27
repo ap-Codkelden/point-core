@@ -140,7 +140,7 @@ def RemoveHRFromFootnotesDiv(self, root):
     """Возвращает блок сносок <div> как элемент ElementTree. 
     Отличается от нативного метода класса FootnoteExtension только 
     ампутированным <hr> (ниже он закомментирован).
-    CSS класс блока -- ``footnote``"""
+    CSS класс блока -- ``post-footnote``"""
 
     if not list(self.footnotes.keys()):
         return None
