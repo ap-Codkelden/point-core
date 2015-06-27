@@ -253,17 +253,17 @@ class FootnotePreprocessor(Preprocessor):
 class FootnotePattern(Pattern):
     """ InlinePattern for footnote markers in a document's body text. """
 
-    def _unique_id(self):
-        return ''.join(choice(lowercase) for i in range(6))
-
     def __init__(self, pattern, footnotes):
         super(FootnotePattern, self).__init__(pattern)
         self.footnotes = footnotes
 
+    def _unique_id(self):
+        return ''.join(choice(lowercase) for i in range(6))
+
     def handleMatch(self, m):
-        # id = m.group(2)
-        id = ''.join([self._unique_id(), m.group(2)])
+        id = m.group(2)
         if id in self.footnotes.footnotes.keys():
+            id = ''.join([self._unique_id(), id])
             sup = etree.Element("sup")
             a = etree.SubElement(sup, "a")
             sup.set('id', self.footnotes.makeFootnoteRefId(id))
