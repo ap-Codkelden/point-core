@@ -107,7 +107,7 @@ class UniqueFootnoteExtension(Extension):
 
     def setFootnote(self, id, text):
         """ Store a footnote for later retrieval. """
-        self.footnotes[id] = unique(), text
+        self.footnotes[id] = _unique_id(), text
 
     def get_separator(self):
         if self.md.output_format in ['html5', 'xhtml5']:
