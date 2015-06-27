@@ -82,9 +82,6 @@ class UniqueFootnoteExtension(Extension):
             "footnote", FootnotePostprocessor(self), ">amp_substitute"
         )
 
-    def _unique_id(self):
-        return ''.join(choice(lowercase) for i in range(6))
-
     def reset(self):
         """ Clear footnotes on reset, and prepare for distinct document. """
         self.footnotes = OrderedDict()
@@ -255,6 +252,9 @@ class FootnotePreprocessor(Preprocessor):
 
 class FootnotePattern(Pattern):
     """ InlinePattern for footnote markers in a document's body text. """
+
+    def _unique_id(self):
+        return ''.join(choice(lowercase) for i in range(6))
 
     def __init__(self, pattern, footnotes):
         super(FootnotePattern, self).__init__(pattern)
