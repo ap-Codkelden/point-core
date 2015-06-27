@@ -4,6 +4,8 @@ from markdown.preprocessors import Preprocessor
 from markdown.inlinepatterns import Pattern, LinkPattern
 from markdown.util import etree
 from markdown.extensions.footnotes import FN_BACKLINK_TEXT, NBSP_PLACEHOLDER
+from random import choice
+from string import lowercase
 
 try:  
     from urllib.parse import urlparse, urlunparse
@@ -136,11 +138,27 @@ class ColonLinkPattern(LinkPattern):
         return urlunparse(url)
 
 
+def makeUniqueFootnoteId(self, id):
+    """Возвращает улучшенные уникальные id для избежания их дублирования 
+    на странице блога, где могут показываться два поста, содержащих сноски
+    """
+    def unique_string():
+        return ''.join(choice(lowercase) for i in range(6))
+
+     footnote_id = lambda x: ''.join(choice(lowercase) for i in range(6))
+    """ Return footnote link id. """
+    if self.getConfig("UNIQUE_IDS"):
+        return 'fn%s%s%d-%s' % (unique_string(), self.get_separator(), self.unique_prefix, id)
+    else:
+        return 'fn%s%s%s' % (unique_string(), self.get_separator(), id)
+
+
 def RemoveHRFromFootnotesDiv(self, root):
     """Возвращает блок сносок <div> как элемент ElementTree. 
     Отличается от нативного метода класса FootnoteExtension только 
     ампутированным <hr> (ниже он закомментирован).
-    CSS класс блока -- ``post-footnote``"""
+    CSS класс блока -- ``post-footnote``
+    """
 
     if not list(self.footnotes.keys()):
         return None
