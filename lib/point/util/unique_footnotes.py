@@ -36,6 +36,8 @@ NBSP_PLACEHOLDER = "qq3936677670287331zz"
 DEF_RE = re.compile(r'[ ]{0,3}\[\^([^\]]*)\]:\s*(.*)')
 TABBED_RE = re.compile(r'((\t)|(    ))(.*)')
 
+def _unique_id(self):
+    return ''.join(choice(lowercase) for i in range(6))
 
 class UniqueFootnoteExtension(Extension):
     """ Unique Footnote Extension. """
@@ -105,20 +107,20 @@ class UniqueFootnoteExtension(Extension):
 
     def setFootnote(self, id, text):
         """ Store a footnote for later retrieval. """
-        self.footnotes[id] = text
+        self.footnotes[id] = unique(), text
 
     def get_separator(self):
         if self.md.output_format in ['html5', 'xhtml5']:
             return '-'
         return ':'
 
-    def makeFootnoteId(self, random_prefix, id):
+    def makeFootnoteId(self, id):
         """ Return footnote link id. """
-        return 'fn%s%s%s' % (self.get_separator(), random_prefix, id)
+        return 'fn%s%s%s' % (self.get_separator(),  self.footnotes[id][0])
 
-    def makeFootnoteRefId(self, random_prefix, id):
+    def makeFootnoteRefId(self, id):
         """ Return footnote back-link id. """
-        return 'fnref%s%s%s' % (self.get_separator(), random_prefix, id)
+        return 'fnref%s%s%s' % (self.get_separator(), self.footnotes[id][0])
 
     def makeFootnotesDiv(self, root):
         """ Return div of footnotes as et Element. """
@@ -133,8 +135,8 @@ class UniqueFootnoteExtension(Extension):
 
         for id in self.footnotes.keys():
             li = etree.SubElement(ol, "li")
-            li.set("id", self.makeFootnoteId(id))
-            self.parser.parseChunk(li, self.footnotes[id])
+            li.set("id", self.makeFootnoteId(id)
+            self.parser.parseChunk(li, self.footnotes[id][1])
             backlink = etree.Element("a")
             backlink.set("href", "#" + self.makeFootnoteRefId(id))
             if self.md.output_format not in ['html5', 'xhtml5']:
@@ -257,17 +259,14 @@ class FootnotePattern(Pattern):
         super(FootnotePattern, self).__init__(pattern)
         self.footnotes = footnotes
 
-    def _unique_id(self):
-        return ''.join(choice(lowercase) for i in range(6))
 
     def handleMatch(self, m):
         id = m.group(2)
         if id in self.footnotes.footnotes.keys():
-            random_prefix = _unique_id()
             sup = etree.Element("sup")
             a = etree.SubElement(sup, "a")
-            sup.set('id', self.footnotes.makeFootnoteRefId(random_prefix, id))
-            a.set('href', '#' + self.footnotes.makeFootnoteId(random_prefix, id))
+            sup.set('id', self.footnotes.makeFootnoteRefId(id))
+            a.set('href', '#' + self.footnotes.makeFootnoteId(id))
             if self.footnotes.md.output_format not in ['html5', 'xhtml5']:
                 a.set('rel', 'footnote')  # invalid in HTML5
             a.set('class', 'footnote-ref')
