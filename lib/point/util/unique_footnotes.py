@@ -38,7 +38,7 @@ TABBED_RE = re.compile(r'((\t)|(    ))(.*)')
 
 
 class UniqueFootnoteExtension(Extension):
-    """ Footnote Extension. """
+    """ Unique Footnote Extension. """
 
     def __init__(self, *args, **kwargs):
         """ Setup configs. """
@@ -52,7 +52,7 @@ class UniqueFootnoteExtension(Extension):
                  "The text string that links from the footnote "
                  "to the reader's place."]
         }
-        super(FootnoteExtension, self).__init__(*args, **kwargs)
+        super(UniqueFootnoteExtension, self).__init__(*args, **kwargs)
         self.reset()
 
     def extendMarkdown(self, md, md_globals):
