@@ -112,13 +112,13 @@ class UniqueFootnoteExtension(Extension):
             return '-'
         return ':'
 
-    def makeFootnoteId(self, id):
+    def makeFootnoteId(self, random_prefix, id):
         """ Return footnote link id. """
-        return 'fn%s%s' % (self.get_separator(), id)
+        return 'fn%s%s%s' % (self.get_separator(), random_prefix, id)
 
-    def makeFootnoteRefId(self, id):
+    def makeFootnoteRefId(self, random_prefix, id):
         """ Return footnote back-link id. """
-        return 'fnref%s%s' % (self.get_separator(), id)
+        return 'fnref%s%s%s' % (self.get_separator(), random_prefix, id)
 
     def makeFootnotesDiv(self, root):
         """ Return div of footnotes as et Element. """
@@ -263,11 +263,11 @@ class FootnotePattern(Pattern):
     def handleMatch(self, m):
         id = m.group(2)
         if id in self.footnotes.footnotes.keys():
-            id = ''.join([self._unique_id(), id])
+            random_prefix = _unique_id()
             sup = etree.Element("sup")
             a = etree.SubElement(sup, "a")
-            sup.set('id', self.footnotes.makeFootnoteRefId(id))
-            a.set('href', '#' + self.footnotes.makeFootnoteId(id))
+            sup.set('id', self.footnotes.makeFootnoteRefId(random_prefix, id))
+            a.set('href', '#' + self.footnotes.makeFootnoteId(random_prefix, id))
             if self.footnotes.md.output_format not in ['html5', 'xhtml5']:
                 a.set('rel', 'footnote')  # invalid in HTML5
             a.set('class', 'footnote-ref')
