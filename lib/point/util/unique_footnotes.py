@@ -17,6 +17,7 @@
     последовательности, состоящие из 6 символов латинского алфавита
   - удален ``unique_prefix``
   - удалена опция ``UNIQUE_IDS``
+  - тегу ``<sup>`` назначен класс ``"footnote-sup"``
   - из блока сносок ампутирован <hr>, CSS класс блока назвается ``post-footnote``
 
 """
@@ -89,7 +90,6 @@ class UniqueFootnoteExtension(Extension):
     def reset(self):
         """ Clear footnotes on reset, and prepare for distinct document. """
         self.footnotes = OrderedDict()
-        #self.unique_prefix += 1
 
     def findFootnotesPlaceholder(self, root):
         """ Return ElementTree Element that contains Footnote placeholder. """
@@ -263,6 +263,7 @@ class FootnotePattern(Pattern):
             sup = etree.Element("sup")
             a = etree.SubElement(sup, "a")
             sup.set('id', self.footnotes.makeFootnoteRefId(id))
+            sup.set('class', 'footnote-sup')
             a.set('href', '#' + self.footnotes.makeFootnoteId(id))
             if self.footnotes.md.output_format not in ['html5', 'xhtml5']:
                 a.set('rel', 'footnote')  # invalid in HTML5
