@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 """
-Footnotes Extension for Python-Markdown
+Unique Footnotes Extension for Python-Markdown
 =======================================
 
-Adds footnote handling to Python-Markdown.
+Adds unique footnote handling to Python-Markdown.
 
 See <https://pythonhosted.org/Markdown/extensions/footnotes.html>
 for documentation.
@@ -37,7 +37,7 @@ DEF_RE = re.compile(r'[ ]{0,3}\[\^([^\]]*)\]:\s*(.*)')
 TABBED_RE = re.compile(r'((\t)|(    ))(.*)')
 
 
-class FootnoteExtension(Extension):
+class UniqueFootnoteExtension(Extension):
     """ Footnote Extension. """
 
     def __init__(self, *args, **kwargs):
