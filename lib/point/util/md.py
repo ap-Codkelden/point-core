@@ -146,7 +146,7 @@ def RemoveHRFromFootnotesDiv(self, root):
         return None
 
     div = etree.Element("div")
-    div.set('class', 'footnote')
+    div.set('class', 'post-footnote')
     # etree.SubElement(div, "hr")
     ol = etree.SubElement(div, "ol")
 
