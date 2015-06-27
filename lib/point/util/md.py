@@ -3,9 +3,7 @@
 from markdown.preprocessors import Preprocessor
 from markdown.inlinepatterns import Pattern, LinkPattern
 from markdown.util import etree
-from markdown.extensions.footnotes import FN_BACKLINK_TEXT, NBSP_PLACEHOLDER
-#from random import choice
-#from string import lowercase
+#from markdown.extensions.footnotes import FN_BACKLINK_TEXT, NBSP_PLACEHOLDER
 
 try:  
     from urllib.parse import urlparse, urlunparse
