@@ -144,8 +144,6 @@ def makeUniqueFootnoteId(self, id):
     """
     def unique_string():
         return ''.join(choice(lowercase) for i in range(6))
-
-     footnote_id = lambda x: ''.join(choice(lowercase) for i in range(6))
     """ Return footnote link id. """
     if self.getConfig("UNIQUE_IDS"):
         return 'fn%s%s%d-%s' % (unique_string(), self.get_separator(), self.unique_prefix, id)
