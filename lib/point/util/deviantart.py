@@ -20,6 +20,7 @@ class DeviantArtPreview:
 
     def deviant_preview(self, url):
         try:
+            print '>>> url: ', url
             response = urllib2.urlopen('%s%s' % (self.DEVIANT_OEMBED_URL, url))
             s = response.read()
         except Exception:
