@@ -9,6 +9,7 @@
 Документация DeviantArt oEmbed <https://www.deviantart.com/developers/oembed>
 """
 
+import urllib
 import urllib2
 import json
 from markdown.util import etree
