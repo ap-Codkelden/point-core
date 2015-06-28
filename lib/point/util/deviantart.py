@@ -11,7 +11,7 @@
 
 import urllib2
 import json
-#from markdown.util import etree
+from markdown.util import etree
 
 
 class DeviantArtPreview:
