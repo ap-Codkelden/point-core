@@ -18,8 +18,10 @@
   - удален ``unique_prefix``
   - удалена опция ``UNIQUE_IDS``
   - тегу ``<sup>`` назначен класс ``"footnote-sup"``
-  - из блока сносок ампутирован <hr>, CSS класс блока назвается ``post-footnote``
-
+  - из блока сносок удален элемент <hr>, CSS класс блока назвается 
+    ``post-footnote``
+  - по умолчанию в качестве ``BACKLINK_TEXT`` назначен символ Unoicode
+    Rightwards Arrow with Tip Upwards
 """
 
 from __future__ import absolute_import
@@ -54,8 +56,7 @@ class UniqueFootnoteExtension(Extension):
                 ["///Footnotes Go Here///",
                  "The text string that marks where the footnotes go"],
             "BACKLINK_TEXT":
-                #["&#8617;",
-                ["&#11023;",
+                ["&#11023;", 
                  "The text string that links from the footnote "
                  "to the reader's place."]
         }
