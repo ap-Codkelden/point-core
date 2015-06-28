@@ -23,6 +23,7 @@ class DeviantArtPreview:
             response = urllib2.urlopen('%s%s' % (self.DEVIANT_OEMBED_URL, url))
             s = response.read()
         except Exception:
+            print '>>> Error?'
             wrap = etree.Element('div')
             a = etree.SubElement(wrap, 'a')
             a.set('href', url)
