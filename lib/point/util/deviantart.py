@@ -21,9 +21,12 @@ class DeviantArtPreview:
     def deviant_preview(self, url):
         try:
             print '>>> url: ', url
+            print '%s%s' % (self.DEVIANT_OEMBED_URL, url)
             response = urllib2.urlopen('%s%s' % (self.DEVIANT_OEMBED_URL, url))
             s = response.read()
-        except Exception:
+            print "S: ",s
+        except Exception,e:
+            print 'e: ',e
             print '>>> Error?'
             wrap = etree.Element('div')
             a = etree.SubElement(wrap, 'a')
