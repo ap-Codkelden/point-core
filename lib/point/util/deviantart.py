@@ -21,7 +21,7 @@ class DeviantArtPreview:
 
     def deviant_preview(self, url):
         try:
-            url = urllib.quote(string, '')
+            url = urllib.quote(url, '')
             print '>>> url: ', url
             print '%s%s' % (self.DEVIANT_OEMBED_URL, url)
             response = urllib2.urlopen('%s%s' % (self.DEVIANT_OEMBED_URL, url))
