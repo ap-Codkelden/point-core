@@ -1,9 +1,9 @@
-gevent==0.13.8
+gevent==1.0.1
+#https://dev.point.im/arts/geweb.git
+psycopg2
 redis
 jinja2
 PyRSS2Gen
-hg+http://bitbucket.org/arts/geweb
-#git+git://github.com/lawnsea/SleekXMPP-gevent.git
 sleekxmpp
 python-dateutil
 Markdown
@@ -14,3 +14,5 @@ recaptcha-client
 bitbucket-api
 elasticsearch
 filemagic
+pytz
+python-levenshtein
