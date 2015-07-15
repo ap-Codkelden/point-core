@@ -282,11 +282,6 @@ class FootnotePattern(Pattern):
     def handleMatch(self, m):
         id = m.group(2)
         if id in self.footnotes.footnotes.keys():
-            #sup = etree.Element("sup")
-            #a = etree.SubElement(sup, "a")
-            #sup.set('id', self.footnotes.makeFootnoteRefId(id))
-            #sup.set('class', 'footnote-sup')
-
             a = etree.Element("a")
             a.set('id', self.footnotes.makeFootnoteRefId(id))
 
@@ -294,9 +289,7 @@ class FootnotePattern(Pattern):
             if self.footnotes.md.output_format not in ['html5', 'xhtml5']:
                 a.set('rel', 'footnote')  # invalid in HTML5
             a.set('class', 'footnote-ref')
-            #a.text = text_type(self.footnotes.footnotes.index(id) + 1)
             a.text = text_type(number2unicode(self.footnotes.footnotes.index(id) + 1))
-            #return sup
             return a
         else:
             return None
