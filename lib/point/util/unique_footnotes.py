@@ -44,17 +44,18 @@ TABBED_RE = re.compile(r'((\t)|(    ))(.*)')
 
 # HTML entities for Unicode superscript digits
 NUMBERS = {
-    '0': '\&#8304;',
-    '1': '\&#185;', 
-    '2': '\&#178;',
-    '3': '\&#179;', 
-    '4': '\&#8308;',
-    '5': '\&#8309;',
-    '6': '\&#8310;',
-    '7': '\&#8311;',
-    '8': '\&#8312;',
-    '9': '\&#8313;',
+    '0': u'\u2070',
+    '1': u'\xb9', 
+    '2': u'\xb2',
+    '3': u'\xb3', 
+    '4': u'\u2074',
+    '5': u'\u2075',
+    '6': u'\u2076',
+    '7': u'\u2077',
+    '8': u'\u2078',
+    '9': u'\u2079',
     }
+
 
 def number2unicode(number):
     """Return sequence of superscript HTML entities for ``number``
