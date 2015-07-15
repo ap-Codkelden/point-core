@@ -42,7 +42,28 @@ NBSP_PLACEHOLDER = "qq3936677670287331zz"
 DEF_RE = re.compile(r'[ ]{0,3}\[\^([^\]]*)\]:\s*(.*)')
 TABBED_RE = re.compile(r'((\t)|(    ))(.*)')
 
+# HTML entities for Unicode superscript digits
+NUMBERS = {
+    '0': '&#8304;',
+    '1': '&#8305;', 
+    '2': '&#8306;',
+    '3': '&#8307;', 
+    '4': '&#8308;',
+    '5': '&#8309;',
+    '6': '&#8310;',
+    '7': '&#8311;',
+    '8': '&#8312;',
+    '9': '&#8313;',
+    }
+
+def number2unicode(number):
+    """Return sequence of superscript HTML entities for ``number``
+    """
+    return ''.join(NUMBERS.get(char, char) for char in str(number))
+
 def _unique_id():
+    """Return unique six-chars length string
+    """
     return ''.join(choice(lowercase) for i in range(6))
 
 class UniqueFootnoteExtension(Extension):
@@ -261,16 +282,22 @@ class FootnotePattern(Pattern):
     def handleMatch(self, m):
         id = m.group(2)
         if id in self.footnotes.footnotes.keys():
-            sup = etree.Element("sup")
-            a = etree.SubElement(sup, "a")
-            sup.set('id', self.footnotes.makeFootnoteRefId(id))
-            sup.set('class', 'footnote-sup')
+            #sup = etree.Element("sup")
+            #a = etree.SubElement(sup, "a")
+            #sup.set('id', self.footnotes.makeFootnoteRefId(id))
+            #sup.set('class', 'footnote-sup')
+
+            a = etree.Element("a")
+            a.set('id', self.footnotes.makeFootnoteRefId(id))
+
             a.set('href', '#' + self.footnotes.makeFootnoteId(id))
             if self.footnotes.md.output_format not in ['html5', 'xhtml5']:
                 a.set('rel', 'footnote')  # invalid in HTML5
             a.set('class', 'footnote-ref')
-            a.text = text_type(self.footnotes.footnotes.index(id) + 1)
-            return sup
+            #a.text = text_type(self.footnotes.footnotes.index(id) + 1)
+            a.text = text_type(number2unicode(self.footnotes.footnotes.index(id) + 1))
+            #return sup
+            return a
         else:
             return None
 
