@@ -1,6 +1,9 @@
+# -*- coding: UTF-8 -*-
+
 from markdown.preprocessors import Preprocessor
 from markdown.inlinepatterns import Pattern, LinkPattern
 from markdown.util import etree
+
 try:  
     from urllib.parse import urlparse, urlunparse
 except ImportError:
