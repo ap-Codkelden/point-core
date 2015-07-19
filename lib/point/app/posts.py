@@ -247,6 +247,15 @@ def add_post(post, title=None, link=None, tags=None, author=None, to=None,
         except IntegrityError:
             pass
 
+    publish('msg.self', {'to': [env.user.id], 'a': 'post', 'post_id': post_id,
+                    'type': post.type, 'author': post.author.login,
+                    'author_name': post.author.get_info('name'),
+                    'tags': post.tags, 'private': post.private,
+                    'title': post.title,'text': post.text, 'link': post.link,
+                    'to_users': [ u.login for u in to_users ],
+                    'files': files,
+                    'cut': True})
+
     if subscribers:
         publish('msg', {'to': subscribers, 'a': 'post', 'post_id': post_id,
                         'type': post.type, 'author': post.author.login,
@@ -1103,6 +1112,11 @@ def add_comment(post_id, to_comment_id, text, files=None,
 
     subscribers = filter(lambda u: u!=env.user.id,
                          uniqify(hls+post.get_subscribers(bluser=env.user)))
+
+    publish('msg.self', {'to':[env.user.id], 'a':'comment', 'author':env.user.login,
+                    'post_id':post_id, 'comment_id':comment_id, 'text':text,
+                    'to_comment_id':to_comment_id, 'to_text':to_text,
+                    'files':files})
 
     publish('msg', {'to':subscribers, 'a':'comment', 'author':env.user.login,
                     'post_id':post_id, 'comment_id':comment_id, 'text':text,
