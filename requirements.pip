@@ -1,5 +1,5 @@
 gevent==1.0.1
-#https://dev.point.im/arts/geweb.git
+git+ssh://git@dev.point.im/arts/geweb
 psycopg2
 redis
 jinja2
