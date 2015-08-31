@@ -484,7 +484,7 @@ def select_posts(author=None, author_private=None, deny_anonymous=None, private=
         query = ("SELECT DISTINCT p.id, NULL AS comment_id, "
                  "p.author, u.login, i.name, i.avatar, "
                  "u.type AS user_type, "
-                 "p.private, p.created, p.resource, "
+                 "p.private, p.created at time zone '%(tz)s' as created, p.resource, "
                  "p.type, p.title, p.link, p.tags, p.text, "
                  "(p.edited=false AND p.created+interval '1800 second' >= now()) AS editable, "
                  "p.archive, p.files, "
@@ -502,11 +502,11 @@ def select_posts(author=None, author_private=None, deny_anonymous=None, private=
                 "LEFT OUTER JOIN posts.bookmarks rb "
                     "ON p.id=rb.post_id AND %(user_id)s=rb.user_id AND "
                     "rb.comment_id=0 " % \
-                 {'joins': ' '.join(joins), 'user_id': env.user.id})
+                 {'joins': ' '.join(joins), 'user_id': env.user.id, 'tz': env.user.get_profile('tz')})
     else:
         query = ("SELECT DISTINCT p.id, NULL AS comment_id, "
                  "p.author, u.login, i.name, i.avatar,"
-                 "p.private, p.created, p.resource, "
+                 "p.private, p.created at time zone '%(tz)s' as created, p.resource, "
                  "p.type, p.title, p.link, p.tags, p.text, "
                  "p.archive, p.files, "
                  "false AS editable, "
@@ -516,7 +516,7 @@ def select_posts(author=None, author_private=None, deny_anonymous=None, private=
                  "FROM posts.posts p JOIN users.logins u ON p.author=u.id "
                  " %(joins)s "
                  "JOIN users.info i ON p.author=i.id " % \
-                 {'joins': ' '.join(joins)})
+                 {'joins': ' '.join(joins), 'tz': settings.timezone})
     cond = []
     params = []
     if author:
@@ -551,7 +551,7 @@ def select_posts(author=None, author_private=None, deny_anonymous=None, private=
     #offset = ' OFFSET %d' % offset if offset else ''
     limit = ' LIMIT %d' % limit if limit else ''
 
-    query += (" ORDER BY p.created %s %s %s;" % (order, offset_cond, limit))
+    query += (" ORDER BY created %s %s %s;" % (order, offset_cond, limit))
 
     res = db.fetchall(query, params)
 
