@@ -1,4 +1,3 @@
-from geweb import log
 import geweb.db.pgsql as db
 from point.util.env import env
 from point.core.user import User, AlreadySubscribed, SubscribeError, check_auth
@@ -385,7 +384,7 @@ def edit_post(post_id, text=None, tags=None, private=None, files=None):
         publish('msg', {'to':subscribers, 'a':'post_edited',
                         'post_id':post.id, 'author':env.user.login,
                         'tags':tags, 'text':text, 'private': post.private,
-                        'files':files})
+                        'files':files, 'cut': True})
 
     _thumbnails(text)
 
