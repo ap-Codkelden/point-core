@@ -1309,8 +1309,25 @@ def recommend(post_id, comment_id, text=None):
         comment = Comment(post, comment_id)
         if comment.author == env.user:
             raise RecommendationError
+        post_author = comment.author
+        post_text = comment.text
+        tags = []
+        title = ''
+        link = ''
+        files = comment.files
+
     elif post.author == env.user:
         raise RecommendationError
+
+    else:
+        post_author = post.author
+        post_text = post.text
+        tags = post.tags
+        title = post.title
+        link = post.link
+        files = post.files
+
+    ccnt = post.comments_count()
 
     res = db.fetchone("SELECT post_id FROM posts.recommendations "
                      "WHERE post_id=%s "
@@ -1356,42 +1373,27 @@ def recommend(post_id, comment_id, text=None):
     else:
         tq = ''
 
-    res = db.fetchall("((SELECT user_id FROM subs.recommendations "
+    res = db.fetchall("(((SELECT user_id FROM subs.recommendations "
                       "WHERE to_user_id=%%(user_id)s "
+                      "UNION "
+                      "SELECT user_id FROM subs.posts "
+                      "WHERE post_id=%%(post_id)s ) "
                       "EXCEPT "
                       "SELECT user_id FROM posts.recommendations_recv "
                       "WHERE post_id=%%(post_id)s "
                       "AND comment_id=COALESCE(%%(comment_id)s, 0) "
                       "EXCEPT "
-                      "SELECT user_id FROM subs.posts "
-                      "WHERE post_id=%%(post_id)s "
-                      "EXCEPT "
                       "SELECT user_id FROM users.blacklist WHERE "
-                      "to_user_id=%%(author_id)s) "
-                      "%s )%s;" % (tq, wq),
+                      "to_user_id=%%(author_id)s "
+                      "EXCEPT SELECT %s "
+                      ") "
+                      "%s )%s;" % (post_author.id, tq, wq),
                       {'user_id': env.user.id,
                        'post_id': unb26(post_id),
                        'comment_id': comment_id,
                        'author_id': post.author.id,
                        'tags': post.tags})
     subscribers = [r[0] for r in res]
-
-    if comment_id:
-        post_author = comment.author
-        post_text = comment.text
-        tags = []
-        title = ''
-        link = ''
-        files = comment.files
-    else:
-        post_author = post.author
-        post_text = post.text
-        tags = post.tags
-        title = post.title
-        link = post.link
-        files = post.files
-
-    ccnt = post.comments_count()
 
     publish('rec', {'to': post_author.id, 'a':'ok', 'post_id': post_id,
                     'comment_id': comment_id, 'author': env.user.login,
