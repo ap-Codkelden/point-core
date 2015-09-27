@@ -43,11 +43,7 @@ def make_thumbnail(url):
 def imgproc_url(url):
     if isinstance(url, unicode):
         url = url.encode('utf-8')
-    try:
-        protocol = env.request.protocol
-    except (AttributeError, KeyError):
-        protocol = 'http'
     h = md5(re.sub('"', '%22', url)).hexdigest()
-    return '%s%s/%s/%s?u=%s' % (protocol, settings.thumbnail_root, h[:2], h,
+    return 'https%s/%s/%s?u=%s' % (settings.thumbnail_root, h[:2], h,
                                 quote_plus(url))
 
