@@ -25,6 +25,7 @@ def GetTwitter(twi_id):
                             resource_owner_key=ACCESS_KEY,
                             resource_owner_secret=ACCESS_SECRET)
     tweet_url = "https://api.twitter.com/1.1/statuses/oembed.json?id=%s&hide_media=1" % twi_id
+    print tweet_url
     data = json.loads(twitter.get(tweet_url).text)
 
     if 'errors' in data:
@@ -33,5 +34,5 @@ def GetTwitter(twi_id):
         return "<![CDATA[\n"+data['html']+"\n]]>"
 
 
-#if __name__ == '__main__':
-#    print GetTwitter(329651129988288514)
+if __name__ == '__main__':
+    print GetTwitter(329651129988288514)
