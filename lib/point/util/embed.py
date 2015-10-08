@@ -1,24 +1,13 @@
 # -*- coding: UTF-8 -*-
+# 
+# embed.py 
+# (c) Point.im, 2015
+# Модуль содержит процедуры для получения при помощи oEmbed и/или прочих 
+# форматов данных для внедрения содержимого сторонних сервисов (e. g. DeviantArt, 
+# Twitter, SoundCloud).
 
-'''
-embed.py 
-(c) Point.im, 2015
-Модуль содержит процедуры для получения при помощи oEmbed и/или прочих 
-форматов данных для внедрения содержимого сторонних сервисов (e. g. DeviantArt, 
-Twitter, SoundCloud).
-'''
-
-import urllib, json, oauth2 as oauth, json
-
-try:
-    import re2 as re
-except ImportError:
-    import re
-
-#try:
-#    import settings
-#except ImportError:
-#    pass
+import json
+from requests_oauthlib import OAuth1Session
 
 # Арц, надо это в settings.py запихнуть, наверное
 # я не понял, в какой для core
@@ -27,21 +16,22 @@ CONSUMER_SECRET = "5kPeCjj4YJwV6ficWxAQNWA88vXuI2nzL4mgdn5CDsQrw5VdBl"
 ACCESS_KEY = "132107638-uloTUyV4E7eGAlByiknW83i1CRkNz95NjuoUYMcb"
 ACCESS_SECRET = "JiVjMRXfb2btyqOXQd5Acl1wLQKIr5cYSDvqqbfaFh6le"
 
+client_id = CONSUMER_KEY
+client_secret = CONSUMER_SECRET
+
 def GetTwitter(twi_id):
-    consumer = oauth.Consumer(key=CONSUMER_KEY, secret=CONSUMER_SECRET)
-    access_token = oauth.Token(key=ACCESS_KEY, secret=ACCESS_SECRET)
-    client = oauth.Client(consumer, access_token)
-    tweet = "https://api.twitter.com/1.1/statuses/oembed.json?id=%s&hide_media=1" % twi_id
-    print tweet
-    response, data = client.request(tweet)
-    data = json.loads(data)
+    twitter = OAuth1Session(CONSUMER_KEY,
+                            client_secret=CONSUMER_SECRET,
+                            resource_owner_key=ACCESS_KEY,
+                            resource_owner_secret=ACCESS_SECRET)
+    tweet_url = "https://api.twitter.com/1.1/statuses/oembed.json?id=%s&hide_media=1" % twi_id
+    data = json.loads(twitter.get(tweet_url).text)
+
     if 'errors' in data:
         return
     else:
         return "<![CDATA[\n"+data['html']+"\n]]>"
 
 
-
-
-if __name__ == '__main__':
-    print GetTwitter(329651129988288514)
+#if __name__ == '__main__':
+#    print GetTwitter(329651129988288514)
