@@ -36,6 +36,11 @@ class PostDiffError(PostError):
 class PostCommentedError(PostError):
     pass
 
+
+class PostReadonlyError(PostError):
+    pass
+
+
 class PostLimitError(PostError):
     pass
 
