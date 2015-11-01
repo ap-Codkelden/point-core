@@ -1305,6 +1305,9 @@ def recommend(post_id, comment_id, text=None):
     if post.private:
         raise RecommendationError
 
+    if u'norec' in post.tags:
+        raise RecommendationError
+
     if comment_id:
         comment = Comment(post, comment_id)
         if comment.author == env.user:
