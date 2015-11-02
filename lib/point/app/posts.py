@@ -5,7 +5,8 @@ from point.core.post import Post, PostAuthorError, PostTextError, \
                             PostUpdateError, PostDiffError, PostNotFound
 from point.core.post import Comment, CommentAuthorError, CommentNotFound
 from point.core.post import RecommendationError, RecommendationNotFound, \
-                            RecommendationExists, PostLimitError
+                            RecommendationExists, PostLimitError, \
+                            PostReadonlyError
 from point.core.post import BookmarkExists
 from point.util.redispool import RedisPool, publish
 from point.util import uniqify, b26, unb26, diff_ratio, timestamp
@@ -1077,6 +1078,9 @@ def add_comment(post_id, to_comment_id, text, files=None,
         raise PostTextError
 
     post = show_post(post_id)
+
+    if u'readonly' in post.tags and post.author.id != env.user.id:
+        raise PostReadonlyError
 
     if post.archive:
         raise SubscribeError

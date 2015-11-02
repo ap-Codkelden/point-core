@@ -8,7 +8,7 @@ from geweb.template import render_string
 
 from geweb.exceptions import Forbidden, NotFound
 from point.core.post import PostAuthorError, PostLimitError, \
-                            PostNotFound, CommentNotFound
+                            PostNotFound, CommentNotFound, PostReadonlyError
 from point.core.user import SubscribeError, UserNotFound, NotAuthorized, \
                             AlreadyAuthorized
 
@@ -97,6 +97,9 @@ def catch_errors(fn):
             return Response(body, code=Forbidden.code, message=Forbidden.message)
         except SubscribeError:
             body = render_string('/post-denied.html')
+            return Response(body, code=Forbidden.code, message=Forbidden.message)
+        except PostReadonlyError:
+            body = render_string('/post-readonly.html')
             return Response(body, code=Forbidden.code, message=Forbidden.message)
         except PostNotFound:
             body = render_string('/post-not-found.html')
