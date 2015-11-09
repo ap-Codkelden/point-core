@@ -388,6 +388,10 @@ class Post(object):
                           [user.id, unb26(self.id)])
         return bool(res)
 
+    def set_pinned(self, value=True):
+        self.pinned = value
+        self.save()
+
     def comments(self, last=False, all=False, offset=None, limit=None,
                  cuser=None):
         if last:
