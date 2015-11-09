@@ -741,6 +741,8 @@ def recent_blog_posts(author=None, limit=10, offset=0, asc=False, before=None):
         "CASE WHEN r.comment_id>0 THEN c.text ELSE p.text END "
            "AS text, "
         "p.archive, p.files, "
+        "(CASE WHEN p.author != %%(author_id)s THEN FALSE "
+            "ELSE p.pinned END) AS is_pinned, "
         "sp.post_id AS subscribed, "
         "rp.post_id AS recommended, "
         "rb.post_id AS bookmarked, "
@@ -778,7 +780,7 @@ def recent_blog_posts(author=None, limit=10, offset=0, asc=False, before=None):
         "WHERE r.user_id=%%(author_id)s AND "
             "(w.user_id IS NOT NULL OR pp.private=false "
              "OR r.user_id=%%(user_id)s) %s "
-        "ORDER BY r.created %s "
+        "ORDER BY is_pinned DESC, r.created %s "
         "%s LIMIT %%(limit)s;"% (before_cond, order, offset),
         {'user_id': env.user.id, 'author_id': author.id,
          'tz': env.user.get_profile('tz'),
