@@ -740,9 +740,9 @@ def recent_blog_posts(author=None, limit=10, offset=0, asc=False, before=None):
         "p.private, "
         "CASE WHEN r.comment_id>0 THEN c.text ELSE p.text END "
            "AS text, "
-        "p.archive, p.files, "
+        "p.archive, p.files, p.pinned AS pinned, "
         "(CASE WHEN p.author != %%(author_id)s THEN FALSE "
-            "ELSE p.pinned END) AS is_pinned, "
+            "ELSE p.pinned END) AS pinned_sort, "
         "sp.post_id AS subscribed, "
         "rp.post_id AS recommended, "
         "rb.post_id AS bookmarked, "
@@ -780,7 +780,7 @@ def recent_blog_posts(author=None, limit=10, offset=0, asc=False, before=None):
         "WHERE r.user_id=%%(author_id)s AND "
             "(w.user_id IS NOT NULL OR pp.private=false "
              "OR r.user_id=%%(user_id)s) %s "
-        "ORDER BY is_pinned DESC, r.created %s "
+        "ORDER BY pinned_sort DESC, r.created %s "
         "%s LIMIT %%(limit)s;"% (before_cond, order, offset),
         {'user_id': env.user.id, 'author_id': author.id,
          'tz': env.user.get_profile('tz'),
@@ -1674,7 +1674,7 @@ def _plist(res):
                               tags=tags, title=r['title'], text=r['text'],
                               link=r['link'], created=r['created'],
                               type=r['type'], archive=r['archive'],
-                              files=r['files'])
+                              files=r['files'], pinned=r['pinned'])
         item['post'] = post
 
         if 'is_rec' in r and r['is_rec']:
