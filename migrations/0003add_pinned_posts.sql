@@ -1,0 +1,2 @@
+ALTER TABLE posts.posts
+	ADD COLUMN pinned boolean NOT NULL DEFAULT FALSE;
