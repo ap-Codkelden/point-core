@@ -1669,12 +1669,13 @@ def _plist(res):
         author = User.from_data(r['author'], r['login'],
                             info={'name': r['name'], 'avatar': r['avatar']})
         tags = r['tags'] if 'tags' in r and r['tags'] else []
+        pinned = r['pinned'] if 'pinned' in r else False
 
         post = Post.from_data(b26(r['id']), author=author, private=r['private'],
                               tags=tags, title=r['title'], text=r['text'],
                               link=r['link'], created=r['created'],
                               type=r['type'], archive=r['archive'],
-                              files=r['files'], pinned=r['pinned'])
+                              files=r['files'], pinned=pinned)
         item['post'] = post
 
         if 'is_rec' in r and r['is_rec']:
