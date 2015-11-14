@@ -1160,7 +1160,7 @@ def add_comment(post_id, to_comment_id, text, files=None,
                            "WHERE user_id = %(id)s AND "
                            " post_id = %(pid)s;", 
                            {'id':env.user.id, 'pid':unb26(post_id)})
-    clear_unread_comments(post_id, comment_id)
+    clear_unread_comments(post_id, comments_id)
 
     _store_last(comment)
 
