@@ -597,7 +597,7 @@ class Comment(object):
             res = db.fetchone("SELECT c.author, u.login, i.name, i.avatar, "
                              "c.to_comment_id, "
                              "c.anon_login, "
-                             "c.created, c.text, c.files "
+                             "c.created, c.text, c.files, c.updated "
                              "FROM posts.comments c "
                              "JOIN users.logins u ON u.id=c.author "
                              "JOIN users.info i ON u.id=i.id "
@@ -622,6 +622,7 @@ class Comment(object):
             self.recommendations = 0
             self.recommended = False
             self.files = res['files']
+            self.updated = res['updated']
         self.comments = []
         self.archive = archive
 
@@ -636,7 +637,7 @@ class Comment(object):
                                  created=None, text=None,
                                  recommended=False, bookmarked=False,
                                  is_rec=False, archive=False, files=None,
-                                 unread=False):
+                                 updated=None, unread=False):
         self = cls(None, None)
         self.post = post
         if id:
@@ -655,10 +656,11 @@ class Comment(object):
             self.files = files
         else:
             self.files = None
+        self.updated = updated
         self.unread = unread
         return self
 
-    def save(self):
+    def save(self, update=False):
         if not self.post.id:
             raise PostNotFound
         if isinstance(self.author, AnonymousUser):
@@ -672,37 +674,43 @@ class Comment(object):
         if isinstance(self.text, str):
             self.text = self.text.decode('utf-8', 'ignore')
 
-        if self.archive and self.id:
-            comment_id = self.id
-            res = db.fetchone("INSERT INTO posts.comments "
-                              "(post_id, comment_id, author, created,"
-                              "to_comment_id, anon_login, text, files) "
-                              "VALUES (%s, %s, %s, %s, %s, %s, %s, %s) "
-                              "RETURNING comment_id;",
-                              [unb26(self.post.id), self.id, self.author.id,
-                               self.created,
-                               self.to_comment_id, anon_login, self.text,
-                               self.files])
+        if update:
+          res = db.perform("""
+            UPDATE posts.comments SET (text, updated) = (%s, now())
+            WHERE post_id = %s AND comment_id = %s;
+            """, [self.text, self.post.id, self.id])
         else:
-            redis = RedisPool(settings.storage_socket)
-            while True:
-                try:
-                    comment_id = redis.incr('cmnt.%s' % self.post.id)
-                    res = db.fetchone("INSERT INTO posts.comments "
-                                     "(post_id, comment_id, author, created,"
-                                     "to_comment_id, anon_login, text, files) "
-                                     "VALUES (%s, %s, %s, %s, %s, %s, %s, %s) "
-                                     "RETURNING comment_id;",
-                                     [unb26(self.post.id), comment_id,
-                                      self.author.id, self.created,
-                                      self.to_comment_id,
-                                      anon_login, self.text, self.files])
-                    break
-                except IntegrityError:
-                    pass
+          if self.archive and self.id:
+              comment_id = self.id
+              res = db.fetchone("INSERT INTO posts.comments "
+                                "(post_id, comment_id, author, created,"
+                                "to_comment_id, anon_login, text, files) "
+                                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s) "
+                                "RETURNING comment_id;",
+                                [unb26(self.post.id), self.id, self.author.id,
+                                 self.created,
+                                 self.to_comment_id, anon_login, self.text,
+                                 self.files])
+          else:
+              redis = RedisPool(settings.storage_socket)
+              while True:
+                  try:
+                      comment_id = redis.incr('cmnt.%s' % self.post.id)
+                      res = db.fetchone("INSERT INTO posts.comments "
+                                       "(post_id, comment_id, author, created,"
+                                       "to_comment_id, anon_login, text, files) "
+                                       "VALUES (%s, %s, %s, %s, %s, %s, %s, %s) "
+                                       "RETURNING comment_id;",
+                                       [unb26(self.post.id), comment_id,
+                                        self.author.id, self.created,
+                                        self.to_comment_id,
+                                        anon_login, self.text, self.files])
+                      break
+                  except IntegrityError:
+                      pass
 
-            if res:
-                redis.incr('cmnt_cnt.%s' % unb26(self.post.id))
+              if res:
+                  redis.incr('cmnt_cnt.%s' % unb26(self.post.id))
 
         try:
             es = elasticsearch.Elasticsearch()
