@@ -1161,6 +1161,27 @@ def add_comment(post_id, to_comment_id, text, files=None,
     return comment_id
 
 @check_auth
+def edit_comment(post_id, comment_id, text, editor=None):
+    comment = Comment(post_id, comment_id)
+    if not editor:
+        editor = env.user
+    if comment.author == editor:
+        text = text.strip()
+        if isinstance(text, str):
+            text = text.decode('utf-8', 'ignore')
+        if len(text) > 4096:
+            text = text[:4096]
+
+        comment.text = text
+        comment.save(update=True)
+
+        _thumbnails(comment.text)
+
+    else:
+        raise PostAuthorError(post_id, comment_id)
+
+
+@check_auth
 def show_comment(post_id, comment_id):
     """
     Get Comment instance
