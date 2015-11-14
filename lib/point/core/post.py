@@ -556,6 +556,7 @@ class Post(object):
         img_url = lambda i: 'http'+settings.media_root+'/'+i
         post_dict = {
             "id": self.id,
+            "pinned": True if self.pinned else False,
             "author": self.author.todict(),
             "private": self.private,
             "type": self.type,
