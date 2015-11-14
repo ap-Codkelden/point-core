@@ -415,6 +415,7 @@ class Post(object):
                                 "THEN c.anon_login ELSE u1.login END AS login,"
                               "c.created at time zone %%s AS created, "
                               "c.text, c.files, "
+                              "c.updated at time zone %%s AS updated, "
                               "CASE WHEN rc.comment_id IS NOT NULL "
                                 "THEN true ELSE false END AS is_rec, "
                               "ur.user_id AS recommended, "
@@ -437,7 +438,7 @@ class Post(object):
                                 "AND ub.comment_id=c.comment_id "
                               "WHERE c.post_id=%%s AND c.comment_id>=%%s "
                               "ORDER BY c.created%s%s;" % (order, lim),
-                              [self.tz, cuser.id, cuser.id, unb26(self.id),
+                              [self.tz, self.tz, cuser.id, cuser.id, unb26(self.id),
                                offset])
         else:
             res = db.fetchall("SELECT c.comment_id, c.to_comment_id,"
@@ -446,6 +447,7 @@ class Post(object):
                                 "THEN c.anon_login ELSE u1.login END AS login,"
                               "c.created at time zone %%s AS created, "
                               "c.text, c.files, "
+                              "c.updated at time zone %%s AS updated, "
                               "CASE WHEN rc.comment_id IS NOT NULL "
                                 "THEN true ELSE false END AS is_rec, "
                               "false AS recommended, "
@@ -460,7 +462,7 @@ class Post(object):
                                 "AND rc.rcid=c.comment_id "
                               "WHERE c.post_id=%%s AND c.comment_id>=%%s "
                               "ORDER BY c.created%s%s;" % (order, lim),
-                              [self.tz, unb26(self.id), offset])
+                              [self.tz, self.tz, unb26(self.id), offset])
         if last:
             res.reverse()
 
@@ -487,6 +489,7 @@ class Post(object):
                                               bookmarked=c['bookmarked'],
                                               is_rec=c['is_rec'],
                                               files=c['files'],
+                                              updated=c['updated'],
                                               unread=unr)
             comments.append(comment)
 
