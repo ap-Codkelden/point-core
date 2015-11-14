@@ -678,7 +678,10 @@ class Comment(object):
           res = db.perform("""
             UPDATE posts.comments SET (text, updated) = (%s, now())
             WHERE post_id = %s AND comment_id = %s;
-            """, [self.text, self.post.id, self.id])
+            """, [self.text,
+              unb26(self.post.id) if isinstance(self.post.id, basestring) else self.post.id,
+              self.id])
+          comment_id = self.id
         else:
           if self.archive and self.id:
               comment_id = self.id
