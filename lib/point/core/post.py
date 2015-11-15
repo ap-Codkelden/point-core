@@ -678,45 +678,45 @@ class Comment(object):
             self.text = self.text.decode('utf-8', 'ignore')
 
         if update:
-          res = db.perform("""
-            UPDATE posts.comments SET (text, updated) = (%s, now())
-            WHERE post_id = %s AND comment_id = %s;
-            """, [self.text,
-              unb26(self.post.id) if isinstance(self.post.id, basestring) else self.post.id,
-              self.id])
-          comment_id = self.id
+            res = db.perform("""
+                UPDATE posts.comments SET (text, updated) = (%s, now())
+                WHERE post_id = %s AND comment_id = %s;
+                """, [self.text,
+                    unb26(self.post.id) if isinstance(self.post.id, basestring) else self.post.id,
+                    self.id])
+            comment_id = self.id
         else:
-          if self.archive and self.id:
-              comment_id = self.id
-              res = db.fetchone("INSERT INTO posts.comments "
-                                "(post_id, comment_id, author, created,"
-                                "to_comment_id, anon_login, text, files) "
-                                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s) "
-                                "RETURNING comment_id;",
-                                [unb26(self.post.id), self.id, self.author.id,
-                                 self.created,
-                                 self.to_comment_id, anon_login, self.text,
-                                 self.files])
-          else:
-              redis = RedisPool(settings.storage_socket)
-              while True:
-                  try:
-                      comment_id = redis.incr('cmnt.%s' % self.post.id)
-                      res = db.fetchone("INSERT INTO posts.comments "
-                                       "(post_id, comment_id, author, created,"
-                                       "to_comment_id, anon_login, text, files) "
-                                       "VALUES (%s, %s, %s, %s, %s, %s, %s, %s) "
-                                       "RETURNING comment_id;",
-                                       [unb26(self.post.id), comment_id,
-                                        self.author.id, self.created,
-                                        self.to_comment_id,
-                                        anon_login, self.text, self.files])
-                      break
-                  except IntegrityError:
-                      pass
+            if self.archive and self.id:
+                comment_id = self.id
+                res = db.fetchone("INSERT INTO posts.comments "
+                                  "(post_id, comment_id, author, created,"
+                                  "to_comment_id, anon_login, text, files) "
+                                  "VALUES (%s, %s, %s, %s, %s, %s, %s, %s) "
+                                  "RETURNING comment_id;",
+                                  [unb26(self.post.id), self.id, self.author.id,
+                                   self.created,
+                                   self.to_comment_id, anon_login, self.text,
+                                   self.files])
+            else:
+                redis = RedisPool(settings.storage_socket)
+                while True:
+                    try:
+                        comment_id = redis.incr('cmnt.%s' % self.post.id)
+                        res = db.fetchone("INSERT INTO posts.comments "
+                                         "(post_id, comment_id, author, created,"
+                                         "to_comment_id, anon_login, text, files) "
+                                         "VALUES (%s, %s, %s, %s, %s, %s, %s, %s) "
+                                         "RETURNING comment_id;",
+                                         [unb26(self.post.id), comment_id,
+                                          self.author.id, self.created,
+                                          self.to_comment_id,
+                                          anon_login, self.text, self.files])
+                        break
+                    except IntegrityError:
+                        pass
 
-              if res:
-                  redis.incr('cmnt_cnt.%s' % unb26(self.post.id))
+                if res:
+                    redis.incr('cmnt_cnt.%s' % unb26(self.post.id))
 
         try:
             es = elasticsearch.Elasticsearch()
