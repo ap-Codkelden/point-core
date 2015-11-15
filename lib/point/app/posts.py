@@ -3,7 +3,8 @@ from point.util.env import env
 from point.core.user import User, AlreadySubscribed, SubscribeError, check_auth
 from point.core.post import Post, PostAuthorError, PostTextError, \
                             PostUpdateError, PostDiffError, PostNotFound
-from point.core.post import Comment, CommentAuthorError, CommentNotFound
+from point.core.post import Comment, CommentAuthorError, CommentNotFound, \
+                            CommentEditingForbiddenError
 from point.core.post import RecommendationError, RecommendationNotFound, \
                             RecommendationExists, PostLimitError, \
                             PostReadonlyError
@@ -1163,8 +1164,14 @@ def add_comment(post_id, to_comment_id, text, files=None,
 @check_auth
 def edit_comment(post_id, comment_id, text, editor=None):
     comment = Comment(post_id, comment_id)
+
+    if datetime.now() - timedelta(seconds=settings.edit_comment_expire) \
+        > comment.created:
+        raise CommentEditingForbiddenError(post_id, comment_id)
+
     if not editor:
         editor = env.user
+
     if comment.author == editor:
         text = text.strip()
         if isinstance(text, str):

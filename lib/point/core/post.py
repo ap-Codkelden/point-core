@@ -584,6 +584,9 @@ class CommentNotFound(CommentError):
 class CommentAuthorError(CommentError):
     pass
 
+class CommentEditingForbiddenError(CommentError):
+    pass
+
 class Comment(object):
     def __init__(self, post, id, to_comment_id=None, author=None,
                                  created=None, text=None, archive=False,
@@ -600,12 +603,13 @@ class Comment(object):
             res = db.fetchone("SELECT c.author, u.login, i.name, i.avatar, "
                              "c.to_comment_id, "
                              "c.anon_login, "
-                             "c.created, c.text, c.files, c.updated "
+                             "c.created at time zone %s AS created, "
+                             "c.text, c.files, c.updated "
                              "FROM posts.comments c "
                              "JOIN users.logins u ON u.id=c.author "
                              "JOIN users.info i ON u.id=i.id "
                              "WHERE post_id=%s AND comment_id=%s;",
-                             [unb26(self.post.id), self.id])
+                             [self.post.tz, unb26(self.post.id), self.id])
 
             if not res:
                 raise CommentNotFound(self.post.id, id)
@@ -770,6 +774,10 @@ class Comment(object):
             "text": self.text,
             "is_rec": self.is_rec
         }
+
+    def is_editable(self):
+        return datetime.now() - timedelta(seconds=settings.edit_comment_expire) \
+        <= self.created
 
 class RecommendationError(PointError):
     pass
