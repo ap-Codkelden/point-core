@@ -84,7 +84,7 @@ class Post(object):
                 self.private = res['private']
 
             if tags is not None:
-                self.tags = [ t.decode('utf8') if isinstance(t, str) else t for t in tags ]
+                self.tags = [ t.decode('utf8').strip() if isinstance(t, str) else t for t in tags ]
             else:
                 self.tags = res['tags']
 
