@@ -36,13 +36,18 @@ class PostDiffError(PostError):
 class PostCommentedError(PostError):
     pass
 
-
 class PostReadonlyError(PostError):
     pass
 
-
 class PostLimitError(PostError):
     pass
+
+class PostAlreadyPinnedError(PostError):
+    pass
+
+class PostNotPinnedError(PostError):
+    pass
+
 
 class Post(object):
     def __init__(self, post_id, author=None, type=None, tags=None,
