@@ -1154,6 +1154,14 @@ def add_comment(post_id, to_comment_id, text, files=None,
     #                {'post':post.id, 'comment':comment_id},
     #                expire=600)
 
+    if post.comments_count():
+        comments_id = db.fetchall("SELECT comment_id FROM "
+                               "posts.unread_comments "
+                               "WHERE user_id = %(id)s AND "
+                               " post_id = %(pid)s;", 
+                               {'id':env.user.id, 'pid':unb26(post_id)})
+        clear_unread_comments(post_id, comments_id)
+
     _store_last(comment)
 
     _thumbnails(text)
