@@ -8,9 +8,14 @@ from geweb.template import render_string
 
 from geweb.exceptions import Forbidden, NotFound
 from point.core.post import PostAuthorError, PostLimitError, \
-                            PostNotFound, CommentNotFound, PostReadonlyError
+                            PostNotFound, CommentNotFound, PostReadonlyError, \
+                            CommentEditingForbiddenError
 from point.core.user import SubscribeError, UserNotFound, NotAuthorized, \
                             AlreadyAuthorized
+import settings
+import geweb.log as log
+import traceback
+
 
 try:
     import re2 as re
@@ -88,7 +93,12 @@ class DomainOwnerMiddleware(Middleware):
 def catch_errors(fn):
     def _fn(*args, **kwargs):
         try:
-            return fn(*args, **kwargs)
+            try:
+                return fn(*args, **kwargs)
+            except Exception as e:
+                if settings.debug:
+                    log.error(traceback.format_exc())
+                raise e
         except UserNotFound:
             body = render_string('/user-not-found.html')
             return Response(body, code=NotFound.code, message=NotFound.message)
@@ -107,6 +117,9 @@ def catch_errors(fn):
         except CommentNotFound:
             body = render_string('/comment-not-found.html')
             return Response(body, code=NotFound.code, message=NotFound.message)
+        except CommentEditingForbiddenError:
+            body = render_string('/comment-past-editing.html')
+            return Response(body, code=Forbidden.code, message=Forbidden.message)
         except NotAuthorized:
             raise Forbidden
         except AlreadyAuthorized:
