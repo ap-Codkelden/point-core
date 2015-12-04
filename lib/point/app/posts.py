@@ -1421,22 +1421,12 @@ def recommend(post_id, comment_id, text=None):
     else:
         tq = ''
 
-    # check if user is already comments post
-    # by select this user_id into variable cq
-    cq = db.fetchall("SELECT author FROM posts.comments "
-                     "WHERE post_id=%%(post_id)s AND "
-                     "author=%%(author_id);", 
-                     {'post_id': unb26(post_id),
-                     'author_id': post.author.id})
-    if not cq:
-        cq = ''
 
-    # сюда добавить cq
     res = db.fetchall("(((SELECT user_id FROM subs.recommendations "
                       "WHERE to_user_id=%%(user_id)s "
                       "UNION "
                       "SELECT user_id FROM subs.posts "
-                      "WHERE post_id=%%(post_id)s ) "
+                      "WHERE post_id=%%(post_id)s and user_id!=%%(user_id)s) "
                       "EXCEPT "
                       "SELECT user_id FROM posts.recommendations_recv "
                       "WHERE post_id=%%(post_id)s "
@@ -1446,7 +1436,7 @@ def recommend(post_id, comment_id, text=None):
                       "to_user_id=%%(author_id)s "
                       "EXCEPT SELECT %s "
                       ") "
-                      "%s )%s;" % (post_author.id, tq, wq),
+                      "%s ) %s;" % (post_author.id, tq, wq),
                       {'user_id': env.user.id,
                        'post_id': unb26(post_id),
                        'comment_id': comment_id,
