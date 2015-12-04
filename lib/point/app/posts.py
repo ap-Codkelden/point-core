@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 import geweb.db.pgsql as db
 from point.util.env import env
 from point.core.user import User, AlreadySubscribed, SubscribeError, check_auth
@@ -1419,6 +1421,17 @@ def recommend(post_id, comment_id, text=None):
     else:
         tq = ''
 
+    # check if user is already comments post
+    # by select this user_id into variable cq
+    cq = db.fetchall("SELECT author FROM posts.comments "
+                     "WHERE post_id=%%(post_id)s AND "
+                     "author=%%(author_id);", 
+                     {'post_id': unb26(post_id),
+                     'author_id': post.author.id})
+    if not cq:
+        cq = ''
+
+    # сюда добавить cq
     res = db.fetchall("(((SELECT user_id FROM subs.recommendations "
                       "WHERE to_user_id=%%(user_id)s "
                       "UNION "
