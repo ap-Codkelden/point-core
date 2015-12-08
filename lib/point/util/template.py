@@ -6,7 +6,7 @@ from point.core.user import User, UserNotFound
 from point.util import cache_get, cache_store, striphtml
 from markdown import Markdown
 from markdown.preprocessors import Preprocessor
-from markdown.inlinepatterns import Pattern
+from markdown.inlinepatterns import Pattern, SimpleTagPattern
 from markdown.treeprocessors import Treeprocessor
 from point.util.md import QuoteBlock, SharpHeader, UrlColons, StrikePattern
 from markdown.util import etree
@@ -195,6 +195,39 @@ class CodePre(Treeprocessor):
             pre.text = '<br/>'.join(map(_line, list(pre.itertext())))
             pre.findall('')
 
+class XmppSpoiler(Pattern):
+    def __init__(self):
+        Pattern.__init__(self, r'(%{2})(?P<contents>.+?)\2')
+
+    def handleMatch(self, m):
+        el = etree.Element('spoiler', style='color:black; background-color:black;')
+        el.text = m.group('contents')
+        return el
+
+class XmppSpoilerContentsSanitizer(Treeprocessor):
+    def run(self, root):
+        spoilers = root.findall('.//spoiler')
+        for spoiler in spoilers:
+            # force black color on links' text
+            for link in spoiler.findall('.//a'):
+                link.set('style', 'color:black; background-color:black;')
+            # transform images inside links into text
+            for img in spoiler.findall('.//a//img'):
+                img.tag = 'span'
+                img.set('style', 'color:black; background-color:black;')
+                img.text = img.get('src')
+                img.attrib.pop('src')
+                img.attrib.pop('alt')
+            # transform other images into links
+            for img in spoiler.findall('.//img'):
+                img.tag = 'a'
+                img.set('style', 'color:black; background-color:black;')
+                img.set('href', img.get('src'))
+                img.attrib.pop('src')
+                img.attrib.pop('alt')
+                img.text = img.get('href')
+            spoiler.tag = 'span'
+
 md = Markdown(extensions=['nl2br'], safe_mode='escape')
 # md = Markdown(extensions=['nl2br','footnotes'], safe_mode='escape')
 
@@ -206,11 +239,13 @@ md.preprocessors.add('urlcolons', UrlColons(md), '>quoteblock')
 md.treeprocessors.add('headersreplace', HeadersReplace(md), '_begin')
 md.treeprocessors.add('tagstyles', TagStyles(md), '>headersreplace')
 md.treeprocessors.add('codepre', CodePre(md), '>tagstyles')
+md.treeprocessors.add('spoiler_san', XmppSpoilerContentsSanitizer(md), '>inline')
 
 md.inlinePatterns.add('url', UrlPattern(), '>automail')
 md.inlinePatterns.add('user', UserLinkPattern(), '>url')
 md.inlinePatterns.add('post', PostLinkPattern(), '>user')
 md.inlinePatterns.add('strike', StrikePattern(), '>post')
+md.inlinePatterns.add('spoiler', XmppSpoiler(), '>strike')
 
 # Template filters
 
