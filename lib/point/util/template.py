@@ -6,7 +6,7 @@ from point.core.user import User, UserNotFound
 from point.util import cache_get, cache_store, striphtml
 from markdown import Markdown
 from markdown.preprocessors import Preprocessor
-from markdown.inlinepatterns import Pattern, SimpleTagPattern
+from markdown.inlinepatterns import Pattern
 from markdown.treeprocessors import Treeprocessor
 from point.util.md import QuoteBlock, SharpHeader, UrlColons, StrikePattern
 from markdown.util import etree
