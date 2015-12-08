@@ -316,7 +316,7 @@ def delete_post(post_id):
     # TODO: publish
 
 @check_auth
-def edit_post(post_id, text=None, tags=None, private=None, files=None):
+def edit_post(post_id, text=None, tags=None, readonly=None, private=None, files=None):
     if isinstance(post_id, Post):
         post = post_id
         post_id = post.id
