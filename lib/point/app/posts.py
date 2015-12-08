@@ -133,7 +133,7 @@ def show_post(post_id):
 @check_last_action
 @check_auth
 def add_post(post, title=None, link=None, tags=None, author=None, to=None,
-        private=False, type='post', auto_subscribe=True, files=None):
+        readonly=False, private=False, type='post', auto_subscribe=True, files=None):
     """
     Add a new post
     """
@@ -146,7 +146,7 @@ def add_post(post, title=None, link=None, tags=None, author=None, to=None,
         text = post.strip()
 
         post = Post(None, author=author, title=title, link=link, tags=tags,
-                    private=private, text=text.strip(), type=type)
+                    readonly=readonly, private=private, text=text.strip(), type=type)
 
     if len(post.text) < 3 and not files:
         raise PostTextError
@@ -251,7 +251,7 @@ def add_post(post, title=None, link=None, tags=None, author=None, to=None,
     publish('msg.self', {'to': [env.user.id], 'a': 'post', 'post_id': post_id,
                     'type': post.type, 'author': post.author.login,
                     'author_name': post.author.get_info('name'),
-                    'tags': post.tags, 'private': post.private,
+                    'tags': post.tags, 'readonly': post.readonly, 'private': post.private,
                     'title': post.title,'text': post.text, 'link': post.link,
                     'to_users': [ u.login for u in to_users ],
                     'files': files,
@@ -261,7 +261,7 @@ def add_post(post, title=None, link=None, tags=None, author=None, to=None,
         publish('msg', {'to': subscribers, 'a': 'post', 'post_id': post_id,
                         'type': post.type, 'author': post.author.login,
                         'author_name': post.author.get_info('name'),
-                        'tags': post.tags, 'private': post.private,
+                        'tags': post.tags, 'readonly': post.readonly, 'private': post.private,
                         'title': post.title,'text': post.text, 'link': post.link,
                         'to_users': [ u.login for u in to_users ],
                         'files': files,
