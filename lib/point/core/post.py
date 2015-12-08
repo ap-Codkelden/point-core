@@ -53,7 +53,7 @@ class Post(object):
     def __init__(self, post_id, author=None, type=None, tags=None,
                  private=None, created=None, title=None, link=None, text=None,
                  edited=None, tz=settings.timezone, archive=None, files=None,
-                 pinned=None):
+                 pinned=None, readonly=None):
         self._comments_count = None
 
         if post_id:
@@ -66,7 +66,7 @@ class Post(object):
             res = db.fetchone("SELECT p.author, u.login, p.type, p.private, "
                              "p.created at time zone %s AS created, "
                              "p.tags, p.title, p.link, p.text, p.files, "
-                             "p.edited, p.archive, p.pinned "
+                             "p.edited, p.archive, p.pinned, p.readonly "
                              "FROM posts.posts p "
                              "JOIN users.logins u ON p.author=u.id "
                              "WHERE p.id=%s;",
@@ -137,6 +137,11 @@ class Post(object):
             else:
                 self.pinned = res['pinned']
 
+            if readonly is not None:
+                self.readonly = readonly
+            else:
+                self.readonly = res['readonly']
+
             if isinstance(files, (list, tuple)):
                 self.files = files
             else:
@@ -175,6 +180,7 @@ class Post(object):
             self.editable = True
             self.archive = False if archive is None else archive
             self.pinned = False if pinned is None else pinned
+            self.readonly = False if readonly is None else readonly
 
         self.tz = tz
 
@@ -185,7 +191,7 @@ class Post(object):
     def from_data(cls, post_id, author=None, type=None, tags=None,
                   private=None, created=None, title=None, link=None, text=None,
                   edited=None, tz=settings.timezone, archive=False, files=None,
-                  pinned=False):
+                  pinned=False, readonly=False):
         self = cls(None)
         if post_id:
             self.id = post_id.lower()
@@ -224,6 +230,7 @@ class Post(object):
 
         self.archive = archive
         self.pinned = pinned
+        self.readonly = readonly
 
         if isinstance(files, (list, tuple)):
             self.files = files
@@ -254,11 +261,12 @@ class Post(object):
                                [unb26(self.id), self.author.id, t])
 
             db.perform("UPDATE posts.posts SET tags=%s, private=%s,"
-                       "text=%s, edited=%s, archive=%s, pinned=%s, files=%s "
+                       "text=%s, edited=%s, archive=%s, pinned=%s, "
+                       "readonly=%s, files=%s "
                        "WHERE id=%s;",
                        [self.tags, bool(self.private), self.text,
-                        self.edited, self.archive, self.pinned, self.files,
-                        unb26(self.id)])
+                        self.edited, self.archive, self.pinned, self.readonly, 
+                        self.files, unb26(self.id)])
 
         else:
             if not self.created:
@@ -266,12 +274,13 @@ class Post(object):
 
             res = db.fetchone("INSERT INTO posts.posts "
                              "(author, type, private, tags, title, link, text, "
-                             "created, edited, archive, pinned, files) "
-                             "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
+                             "created, edited, archive, pinned, readonly, files) "
+                             "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) "
                              "RETURNING id;",
                              [self.author.id, self.type, bool(self.private),
                               self.tags, self.title, self.link, self.text,
-                              self.created, self.edited, self.archive, self.pinned, self.files])
+                              self.created, self.edited, self.archive, self.pinned, 
+                              self.readonly, self.files])
             if not res:
                 raise PostError
 
@@ -396,6 +405,12 @@ class Post(object):
     def set_pinned(self, value=True):
         self.pinned = value
         self.save()
+
+
+    def set_readonly(self, value=True):
+        self.readonly = value
+        self.save()
+
 
     def comments(self, last=False, all=False, offset=None, limit=None,
                  cuser=None):
@@ -565,6 +580,7 @@ class Post(object):
         post_dict = {
             "id": self.id,
             "pinned": True if self.pinned else False,
+            "readonly": True if self.readonly else False,
             "author": self.author.todict(),
             "private": self.private,
             "type": self.type,

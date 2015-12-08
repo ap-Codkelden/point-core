@@ -741,7 +741,7 @@ def recent_blog_posts(author=None, limit=10, offset=0, asc=False, before=None):
         "p.private, "
         "CASE WHEN r.comment_id>0 THEN c.text ELSE p.text END "
            "AS text, "
-        "p.archive, p.files, p.pinned AS pinned, "
+        "p.archive, p.files, p.readonly, p.pinned AS pinned, "
         "(CASE WHEN p.author != %%(author_id)s THEN FALSE "
             "ELSE p.pinned END) AS pinned_sort, "
         "sp.post_id AS subscribed, "
@@ -1707,12 +1707,13 @@ def _plist(res):
                             info={'name': r['name'], 'avatar': r['avatar']})
         tags = r['tags'] if 'tags' in r and r['tags'] else []
         pinned = r['pinned'] if 'pinned' in r else False
+        readonly = r['readonly'] if 'readonly' in r else False
 
         post = Post.from_data(b26(r['id']), author=author, private=r['private'],
                               tags=tags, title=r['title'], text=r['text'],
                               link=r['link'], created=r['created'],
                               type=r['type'], archive=r['archive'],
-                              files=r['files'], pinned=pinned)
+                              files=r['files'], pinned=pinned, readonly=readonly)
         item['post'] = post
 
         if 'is_rec' in r and r['is_rec']:
