@@ -2,7 +2,7 @@ gevent==0.13.8
 redis
 jinja2
 PyRSS2Gen
-git+ssh://git@dev.point.im/arts/geweb@0.0.3
+git+ssh://git@github.com/artss/geweb@0.0.3
 sleekxmpp
 python-dateutil
 Markdown
