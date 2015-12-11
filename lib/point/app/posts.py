@@ -1443,6 +1443,7 @@ def recommend(post_id, comment_id, text=None):
                        'author_id': post.author.id,
                        'tags': post.tags})
     subscribers = [r[0] for r in res]
+    print ">> subscribers", subscribers
 
     publish('rec', {'to': post_author.id, 'a':'ok', 'post_id': post_id,
                     'comment_id': comment_id, 'author': env.user.login,
