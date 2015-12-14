@@ -554,6 +554,9 @@ def select_posts(author=None, author_private=None, deny_anonymous=None, private=
 
     query += (" ORDER BY created %s %s %s;" % (order, offset_cond, limit))
 
+    print '>>> QUERY: <<<'
+    print query
+
     res = db.fetchall(query, params)
 
     plist = []
