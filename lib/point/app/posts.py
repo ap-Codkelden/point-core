@@ -1448,6 +1448,15 @@ def recommend(post_id, comment_id, text=None):
                     'comment_id': comment_id, 'author': env.user.login,
                     'text': text, 'rcid': rcid, 'files': files})
 
+    print '>>>>>>>>>>>>>>>> MSG <<<<<<<<<<<<<<<<<<<<<<<<<<<<<'
+    print {'to':subscribers, 'a':'rec', 'author':env.user.login,
+            'text':text, 'post_id':post_id, 'comment_id': comment_id,
+            'post_author':post_author.login, 'post_text':post_text,
+            'title': title, 'link': link, 'files': files,
+            'tags':tags, 'rcid':rcid, 'comments':ccnt}
+    print '>>>>>>>>>>>>>>>> MSG <<<<<<<<<<<<<<<<<<<<<<<<<<<<<'
+
+
     publish('msg', {'to':subscribers, 'a':'rec', 'author':env.user.login,
             'text':text, 'post_id':post_id, 'comment_id': comment_id,
             'post_author':post_author.login, 'post_text':post_text,
