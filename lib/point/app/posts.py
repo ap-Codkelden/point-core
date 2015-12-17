@@ -1351,6 +1351,10 @@ def recommend(post_id, comment_id, text=None):
     if not comment_id and u'norec' in post.tags:
         raise RecommendationError
 
+    if text is not None and u'readonly' in post.tags:
+        raise PostReadonlyError
+
+
     if comment_id:
         comment = Comment(post, comment_id)
         if comment.author == env.user:
