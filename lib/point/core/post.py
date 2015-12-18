@@ -603,6 +603,10 @@ class Comment(object):
                 self.post = Post.from_data(b26(post))
             else:
                 self.post = Post.from_data(post)
+            print '>'*20
+            print 'post', post
+            print 'id', id
+            print '>'*20
             self.id = int(id)
 
             res = db.fetchone("SELECT c.author, u.login, i.name, i.avatar, "
