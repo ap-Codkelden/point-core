@@ -1024,6 +1024,7 @@ class User(object):
 
         cache_store(key, [dict(t) for t in tags], 60)
 
+        print '>>>>> TAGS ',tags
         return tags
 
     def tag_subscriptions(self):
