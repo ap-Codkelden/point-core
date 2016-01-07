@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 import geweb.db.pgsql as db
 from point.util.env import env
 from point.core.user import User, AlreadySubscribed, SubscribeError, check_auth
@@ -1419,11 +1421,12 @@ def recommend(post_id, comment_id, text=None):
     else:
         tq = ''
 
+
     res = db.fetchall("(((SELECT user_id FROM subs.recommendations "
                       "WHERE to_user_id=%%(user_id)s "
                       "UNION "
                       "SELECT user_id FROM subs.posts "
-                      "WHERE post_id=%%(post_id)s ) "
+                      "WHERE post_id=%%(post_id)s and user_id!=%%(user_id)s) "
                       "EXCEPT "
                       "SELECT user_id FROM posts.recommendations_recv "
                       "WHERE post_id=%%(post_id)s "
@@ -1433,13 +1436,14 @@ def recommend(post_id, comment_id, text=None):
                       "to_user_id=%%(author_id)s "
                       "EXCEPT SELECT %s "
                       ") "
-                      "%s )%s;" % (post_author.id, tq, wq),
+                      "%s ) %s;" % (post_author.id, tq, wq),
                       {'user_id': env.user.id,
                        'post_id': unb26(post_id),
                        'comment_id': comment_id,
                        'author_id': post.author.id,
                        'tags': post.tags})
     subscribers = [r[0] for r in res]
+    print ">> subscribers", subscribers
 
     publish('rec', {'to': post_author.id, 'a':'ok', 'post_id': post_id,
                     'comment_id': comment_id, 'author': env.user.login,
