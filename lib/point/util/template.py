@@ -246,6 +246,7 @@ md.inlinePatterns.add('user', UserLinkPattern(), '>url')
 md.inlinePatterns.add('post', PostLinkPattern(), '>user')
 md.inlinePatterns.add('strike', StrikePattern(), '>post')
 md.inlinePatterns.add('spoiler', XmppSpoiler(), '>strike')
+md.ESCAPED_CHARS.append('%')
 
 # Template filters
 
