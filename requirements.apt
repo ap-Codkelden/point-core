@@ -1,1 +1,19 @@
-mercurial postgresql-9.3 redis-server prosody luajit python-gevent python-imaging python-virtualenv python-lxml python-psycopg2 realpath sshfs python-tz python-levenshtein python-setproctitle python-dnspython libmagic-dev python-dev libevent-dev
+libevent-dev
+libmagic-dev
+luajit
+mercurial
+postgresql-9.3
+prosody
+python-dev
+python-dnspython
+python-gevent
+python-imaging
+python-levenshtein
+python-lxml
+python-psycopg2
+python-setproctitle
+python-tz
+python-virtualenv
+realpath
+redis-server
+sshfs
