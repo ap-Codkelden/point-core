@@ -115,8 +115,8 @@ class User(object):
         else:
             res = db.fetchone("SELECT u.id, u.login FROM users.accounts a "
                              "JOIN users.logins u ON u.id=a.user_id "
-                             "WHERE a.type=%s AND a.address=%s;",
-                             [field, value]) #, _cache=3600)
+                             "WHERE a.type=%s AND lower(a.address)=%s;",
+                             [field, value.lower()]) #, _cache=3600)
             if res:
                 self.id, self.login = res
                 cache_store('addr_id_login:%s' % value.lower(),[res[0], res[1]])
