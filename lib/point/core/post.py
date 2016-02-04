@@ -1,14 +1,13 @@
 from geweb import log
 import geweb.db.pgsql as db
 from point.core.user import User, AnonymousUser
-from point.core.user import SubscribeError, AlreadySubscribed
+from point.core.user import AlreadySubscribed
 from point.core import PointError
 from point.util import b26, unb26
 from point.util.redispool import RedisPool
 from datetime import datetime, timedelta
 from psycopg2 import IntegrityError
 from point.util.imgproc import remove_attach
-import pytz
 import elasticsearch
 
 import settings
@@ -164,7 +163,10 @@ class Post(object):
             self.link = link
 
             if isinstance(text, str):
-                self.text = text.decode('utf-8').strip()[:1048576]
+                try:
+                    self.text = text.decode('utf-8').strip()[:1048576]
+                except UnicodeDecodeError:
+                    raise PostTextError
             elif isinstance(text, unicode):
                 self.text = text.strip()[:1048576]
             else:

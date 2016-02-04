@@ -165,10 +165,10 @@ def add_post(post, title=None, link=None, tags=None, author=None, to=None,
 
     if to:
         for login in uniqify(to):
-            u = User('login', login)
-            if u.check_blacklist(author):
+            user = User('login', login)
+            if user.check_blacklist(author):
                 raise SubscribeError(login)
-            to_users.append(u)
+            to_users.append(user)
 
         subscribers = [ u.id for u in to_users ]
 
@@ -1084,7 +1084,7 @@ def add_comment(post_id, to_comment_id, text, files=None,
 
     post = show_post(post_id)
 
-    if u'readonly' in post.tags and post.author.id != env.user.id:
+    if post.tags and u'readonly' in post.tags and post.author.id != env.user.id:
         raise PostReadonlyError
 
     if post.archive:
@@ -1350,10 +1350,10 @@ def recommend(post_id, comment_id, text=None):
     if post.private:
         raise RecommendationError
 
-    if not comment_id and u'norec' in post.tags:
+    if not comment_id and post.tags and u'norec' in post.tags:
         raise RecommendationError
 
-    if text is not None and u'readonly' in post.tags:
+    if text is not None and post.tags and u'readonly' in post.tags:
         raise PostReadonlyError
 
 
@@ -1670,15 +1670,15 @@ def del_recipients(post_id, to):
 
     to_users = []
     for login in to:
-        u = User('login', login)
-        if u.check_blacklist(env.user):
+        user = User('login', login)
+        if user.check_blacklist(env.user):
             raise SubscribeError(login)
-        to_users.append(u)
+        to_users.append(user)
 
-    res = db.fetchall("DELETE FROM posts.recipients WHERE "
-                      "post_id=%s AND user_id=ANY(%s) "
-                      "RETURNING user_id;",
-                      [unb26(post_id), [u.id for u in to_users]])
+    db.fetchall("DELETE FROM posts.recipients WHERE "
+                "post_id=%s AND user_id=ANY(%s) "
+                "RETURNING user_id;",
+                [unb26(post_id), [u.id for u in to_users]])
 
 def _plist(res):
     if not res:

@@ -155,6 +155,9 @@ class User(object):
 
     @staticmethod
     def _passhash(password):
+        if password is None:
+            return None
+
         phash = sha1(password).hexdigest().lower()
         return sha1('%s%s' % (settings.secret, phash)).hexdigest().lower()
 
