@@ -375,10 +375,15 @@ def edit_post(post_id, text=None, tags=None, private=None, files=None):
                           "SELECT user_id FROM posts.recipients "
                           "WHERE post_id=%%(post_id)s "
                           "EXCEPT "
+                          "SELECT user_id FROM posts.tags_blacklist "
+                          "WHERE tag = ANY(%%(tags)s) "
+                          "AND (to_user_id IS NULL "
+                               "OR to_user_id=%%(id)s)"
+                          "EXCEPT "
                           "SELECT user_id FROM users.blacklist WHERE "
                           "to_user_id=%%(id)s;" % hl_sql,
                           {'id':env.user.id, 'post_id':unb26(post.id),
-                           'hl':hl})
+                            'hl':hl, 'tags': tags})
         subscribers = filter(lambda u: u!=env.user.id, map(lambda u: u[0], res))
 
     else:
