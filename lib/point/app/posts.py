@@ -1203,6 +1203,22 @@ def edit_comment(post_id, comment_id, text, editor=None):
     else:
         raise PostAuthorError(post_id, comment_id)
 
+    res = db.fetchall("SELECT user_id FROM subs.posts WHERE post_id=%(post_id)s "
+                        "AND user_id!=%(user_id)s"
+                      "EXCEPT "
+                      "SELECT user_id FROM users.blacklist WHERE "
+                      "to_user_id=%(user_id)s;",
+                      {'post_id': unb26(post_id), 'user_id': editor.id})
+
+    subscribers = map(lambda u: u[0], res)
+
+    if subscribers:
+        publish('msg', {'to': subscribers, 'a': 'comment_edited',
+                        'post_id': post_id, 'comment_id': comment_id,
+                        'author': env.user.login,
+                        'text': text,
+                        'cut': True})
+
 
 @check_auth
 def show_comment(post_id, comment_id):
