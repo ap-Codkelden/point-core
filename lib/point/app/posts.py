@@ -654,7 +654,8 @@ def recent_posts(limit=10, offset=0, asc=False, type=None, unread=False, before=
             "p.private, "
             "CASE WHEN r.comment_id>0 THEN c.text ELSE p.text END "
                "AS text, "
-            "p.archive, p.files, "
+            "p.archive, "
+            "CASE WHEN r.comment_id>0 THEN c.files ELSE p.files END AS files, "
             "sp.post_id AS subscribed, "
             "rp.post_id AS recommended, "
             "rb.post_id AS bookmarked, "
@@ -692,7 +693,6 @@ def recent_posts(limit=10, offset=0, asc=False, type=None, unread=False, before=
             "%s LIMIT %%(limit)s;" % (type_cond, before_cond, order, offset),
             {'user_id': env.user.id, 'tz': env.user.get_profile('tz'),
              'limit': limit, 'edit_expire': settings.edit_expire})
-        
 
     return _plist(res)
 
@@ -748,7 +748,8 @@ def recent_blog_posts(author=None, limit=10, offset=0, asc=False, before=None):
         "p.private, "
         "CASE WHEN r.comment_id>0 THEN c.text ELSE p.text END "
            "AS text, "
-        "p.archive, p.files, p.pinned AS pinned, "
+        "CASE WHEN r.comment_id>0 THEN c.files ELSE p.files END AS files, "
+        "p.archive, p.pinned AS pinned, "
         "(CASE WHEN p.author != %%(author_id)s THEN FALSE "
             "ELSE p.pinned END) AS pinned_sort, "
         "sp.post_id AS subscribed, "
