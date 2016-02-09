@@ -90,6 +90,14 @@ def subscribe(login):
         return False
 
 @check_auth
+def check_subscribe_to_user(login):
+    return env.user.check_subscribe_to_user(login)
+
+@check_auth
+def check_subscribe_to_user_rec(login):
+    return env.user.check_subscribe_to_user_rec(login)
+
+@check_auth
 def unsubscribe(login):
     """Unsubscribe from user
     """

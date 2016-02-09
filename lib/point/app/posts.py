@@ -1342,6 +1342,13 @@ def subscribe(post_id):
     return post
 
 @check_auth
+def check_subscribe_to(post_id):
+    """Check for user subscription to post
+    """
+    subscribed = env.user.check_post_subscribed(post_id)
+    return subscribed
+
+@check_auth
 def unsubscribe(post_id):
     """
     Unsubscribe from post
@@ -1476,7 +1483,6 @@ def recommend(post_id, comment_id, text=None):
                        'author_id': post.author.id,
                        'tags': post.tags})
     subscribers = [r[0] for r in res]
-    print ">> subscribers", subscribers
 
     publish('rec', {'to': post_author.id, 'a':'ok', 'post_id': post_id,
                     'comment_id': comment_id, 'author': env.user.login,

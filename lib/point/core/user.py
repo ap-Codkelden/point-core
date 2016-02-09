@@ -3,7 +3,7 @@ from point.util import parse_email
 import geweb.db.pgsql as db
 from point.util.redispool import RedisPool
 from point.util.env import env
-from point.util import cache_get, cache_store, cache_del
+from point.util import cache_get, cache_store, cache_del, unb26
 from point.util import validate_nickname
 from point.core import PointError
 import json
@@ -653,6 +653,22 @@ class User(object):
                          "user_id=%s AND to_user_id=%s;", [user.id, self.id])
         return bool(res)
 
+    def check_subscribe_to_user(self, login):
+        user = User('login', login)
+        if self == user or not user or not self.id:
+            return False
+        res = db.fetchone("SELECT user_id FROM subs.users WHERE "
+                         "user_id=%s AND to_user_id=%s;", [self.id, user.id])
+        return bool(res)
+
+    def check_subscribe_to_user_rec(self, login):
+        user = User('login', login)
+        if self == user or not user or not self.id:
+            return False
+        res = db.fetchone("SELECT user_id FROM subs.recommendations WHERE "
+                         "user_id=%s AND to_user_id=%s;", [self.id, user.id])
+        return bool(res)
+
     def incoming_subscription_requests(self):
         if not self.id:
             return []
@@ -1041,6 +1057,15 @@ class User(object):
                           "WHERE t.user_id=%s "
                           "GROUP BY t.to_user_id, u.login;", [self.id])
         return res
+
+    def check_post_subscribed(self, post):
+        """Check for user subscription to post.
+        Return True, if subscribed, otherwise False
+        """
+        res = db.fetchone("SELECT user_id, post_id FROM subs.posts "
+                          "WHERE user_id=%s AND post_id=%s;",
+                          [self.id, unb26(post)])
+        return bool(res)
 
     def check_tag_subscribed(self, tag, user=None):
         if user:
