@@ -1249,7 +1249,7 @@ def delete_comment(post_id, comment_id):
     return post
 
 @check_auth
-def clear_unread_posts(posts):
+def clear_unread_posts(posts=None):
     def _unb(id):
         if not isinstance(id, (int, long)):
             id = unb26(id)
@@ -1267,23 +1267,27 @@ def clear_unread_posts(posts):
                    [env.user.id])
 
 @check_auth
-def clear_unread_comments(post_id, comments=None):
-    if not isinstance(post_id, (int, long)):
-        post_id=unb26(post_id)
+def clear_unread_comments(post_id=None, comments=None):
+    if post_id:
+        if not isinstance(post_id, (int, long)):
+            post_id=unb26(post_id)
 
-    if comments:
-        if isinstance(comments, (list, tuple)):
-          db.perform("DELETE FROM posts.unread_comments "
-                     "WHERE user_id=%s AND post_id=%s AND comment_id=ANY(%s);",
-                     [env.user.id, post_id, map(lambda c: int(c), comments)])
+        if comments:
+            if isinstance(comments, (list, tuple)):
+              db.perform("DELETE FROM posts.unread_comments "
+                         "WHERE user_id=%s AND post_id=%s AND comment_id=ANY(%s);",
+                         [env.user.id, post_id, map(lambda c: int(c), comments)])
+            else:
+              db.perform("DELETE FROM posts.unread_comments "
+                         "WHERE user_id=%s AND post_id=%s AND comment_id<=%s;",
+                         [env.user.id, post_id, int(comments)])
         else:
-          db.perform("DELETE FROM posts.unread_comments "
-                     "WHERE user_id=%s AND post_id=%s AND comment_id<=%s;",
-                     [env.user.id, post_id, int(comments)])
+            db.perform("DELETE FROM posts.unread_comments "
+                       "WHERE user_id=%s AND post_id=%s;",
+                       [env.user.id, post_id])
     else:
         db.perform("DELETE FROM posts.unread_comments "
-                   "WHERE user_id=%s AND post_id=%s;",
-                   [env.user.id, post_id])
+                   "WHERE user_id=%s;", [env.user.id])
 
 @check_auth
 def delete_last():
