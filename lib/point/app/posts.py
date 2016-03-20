@@ -1783,3 +1783,12 @@ def _plist(res):
         plist.append(item)
     return plist
 
+
+def post_unread(post_id, user_id):
+    """Returns 'True' or 'False' for 'read' or 'unread' respectively, 
+    if user is logged in, otherwise it returns 'None'.
+    """
+    res = db.fetchone("SELECT 1 FROM posts.unread_posts "
+                 "WHERE post_id=%s AND user_id=%s;",
+                 [unb26(post_id), user_id])
+    return True if res else False
